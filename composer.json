@@ -1,0 +1,22 @@
+{
+    "name": "crazycat/module-magento2-module-builder",
+    "description": "A Magento 2 module that used to build new module",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": [
+        "MIT"
+    ],
+    "require": {
+        "php": "~7.4.0",
+        "magento/framework": "103.0.*",
+        "crazycat/module-magento2-base": "~1.0.0"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "CrazyCat\\ModuleBuilder\\": ""
+        }
+    }
+}
