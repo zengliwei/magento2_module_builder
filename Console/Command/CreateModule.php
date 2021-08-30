@@ -168,15 +168,15 @@ class CreateModule extends Command
      */
     private function createRegistrationFile()
     {
-        $author = $this->cache->getData('author');
-        $moduleName = $this->cache->getData('module_name');
+        $author = $this->cache->getDataByKey('author');
+        $moduleName = $this->cache->getDataByKey('module_name');
 
         $copyright = sprintf('Copyright (c) %s. All rights reserved.', $author)
             . FileGenerator::LINE_FEED
             . 'See COPYING.txt for license details.';
 
         (new FileGenerator())
-            ->setFilename($this->cache->getData('dir') . '/registration.php')
+            ->setFilename($this->cache->getDataByKey('dir') . '/registration.php')
             ->setDocBlock((new DocBlockGenerator())->setLongDescription($copyright))
             ->setUse('Magento\Framework\Component\ComponentRegistrar')
             ->setBody("ComponentRegistrar::register(ComponentRegistrar::MODULE, '$moduleName', __DIR__);")
@@ -188,7 +188,7 @@ class CreateModule extends Command
      */
     private function createModuleEtcFile()
     {
-        $moduleName = $this->cache->getData('module_name');
+        $moduleName = $this->cache->getDataByKey('module_name');
         $xmlStr = <<<XML
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -199,7 +199,7 @@ class CreateModule extends Command
 </config>
 XML;
 
-        $dir = $this->cache->getData('dir') . '/etc';
+        $dir = $this->cache->getDataByKey('dir') . '/etc';
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
@@ -212,11 +212,11 @@ XML;
     private function createComposerFile()
     {
         $data = [
-            'name'        => $this->cache->getData('composer/package_name'),
-            'description' => $this->cache->getData('composer/description'),
+            'name'        => $this->cache->getDataByPath('composer/package_name'),
+            'description' => $this->cache->getDataByPath('composer/description'),
             'type'        => 'magento2-module',
-            'version'     => $this->cache->getData('composer/version'),
-            'license'     => [$this->cache->getData('composer/license')],
+            'version'     => $this->cache->getDataByPath('composer/version'),
+            'license'     => [$this->cache->getDataByPath('composer/license')],
             'require'     => [
                 'php'               => '~7.4.0',
                 'magento/framework' => '103.0.*'
@@ -224,13 +224,13 @@ XML;
             'autoload'    => [
                 'files' => 'registration.php',
                 'psr-4' => [
-                    $this->cache->getData('vendor') . '\\' . $this->cache->getData('module') => ''
+                    $this->cache->getDataByKey('vendor') . '\\' . $this->cache->getDataByKey('module') => ''
                 ]
             ]
         ];
 
         file_put_contents(
-            $this->cache->getData('dir') . '/composer.json',
+            $this->cache->getDataByKey('dir') . '/composer.json',
             json_encode($data, JSON_PRETTY_PRINT)
         );
     }

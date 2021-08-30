@@ -38,9 +38,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CreateModel extends Command
 {
+    private const ARG_MAIN_TABLE = 'main-table';
     private const ARG_MODULE_NAME = 'module-name';
     private const ARG_MODEL_PATH = 'model-path';
-    private const ARG_MAIN_TABLE = 'main-table';
     private const OPT_ID_FIELD = 'id-field';
 
     private Cache $cache;
@@ -78,8 +78,10 @@ class CreateModel extends Command
                 new InputArgument(
                     self::ARG_MODULE_NAME,
                     InputArgument::OPTIONAL,
-                    'Module name, format is like Vendor_Module, case sensitive',
-                    $this->cache->getData('module_name')
+                    sprintf(
+                        'Module name, use the cached one (%s) if not set',
+                        $this->cache->getDataByKey('module_name')
+                    )
                 ),
                 new InputOption(
                     self::OPT_ID_FIELD,
@@ -97,7 +99,7 @@ class CreateModel extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $moduleName = $input->getArgument(self::ARG_MODULE_NAME);
+        $moduleName = $input->getArgument(self::ARG_MODULE_NAME) ?: $this->cache->getDataByKey('module_name');
         if (!($dir = $this->componentRegistrar->getPath(ComponentRegistrar::MODULE, $moduleName))) {
             return $output->writeln('<error>Module does not exists.</error>');
         }
@@ -113,8 +115,7 @@ class CreateModel extends Command
                 [
                     'module_name' => $moduleName,
                     'vendor'      => $vendor,
-                    'module'      => $module,
-                    'dir'         => $dir
+                    'module'      => $module
                 ]
             );
         } else {
@@ -128,97 +129,110 @@ class CreateModel extends Command
         $resourceClass = $vendor . '\\' . $module . '\\Model\\ResourceModel\\' . $modelPath;
         $collectionClass = $vendor . '\\' . $module . '\\Model\\ResourceModel\\' . $modelPath . '\\Collection';
 
-        $this->generateFile(
+        $this->createResourceModel(
             $dir . '/Model/ResourceModel/' . $path . '.php',
-            $this->createResourceModel(
-                $resourceClass,
-                $input->getArgument(self::ARG_MAIN_TABLE),
-                $input->getOption(self::OPT_ID_FIELD)
-            )
+            $resourceClass,
+            $input->getArgument(self::ARG_MAIN_TABLE),
+            $input->getOption(self::OPT_ID_FIELD)
         );
 
-        $this->generateFile(
+        $this->createModel(
             $dir . '/Model/' . $path . '.php',
-            $this->createModel($modelClass, $resourceClass)
+            $modelClass,
+            $resourceClass
         );
 
-        $this->generateFile(
+        $this->createCollection(
             $dir . '/Model/ResourceModel/' . $path . '/Collection.php',
-            $this->createCollection($collectionClass, $modelClass, $resourceClass)
+            $collectionClass,
+            $modelClass,
+            $resourceClass
         );
 
         $output->writeln('<info>Model created.</info>');
     }
 
     /**
+     * @param string $filename
      * @param string $class
      * @param string $mainTable
      * @param string $idFieldName
      * @return ClassGenerator
      */
-    private function createResourceModel($class, $mainTable, $idFieldName)
+    private function createResourceModel($filename, $class, $mainTable, $idFieldName)
     {
-        return (new ClassGenerator($class))
-            ->setExtendedClass('Magento\Framework\Model\ResourceModel\Db\AbstractDb')
-            ->addUse('Magento\Framework\Model\ResourceModel\Db\AbstractDb')
-            ->addMethod(
-                '_construct',
-                [],
-                MethodGenerator::FLAG_PROTECTED,
-                '$this->_init(\'' . $mainTable . '\', \'' . $idFieldName . '\');',
-                (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
-            );
+        $this->generateFile($filename, function () use ($class, $mainTable, $idFieldName) {
+            return (new ClassGenerator($class))
+                ->setExtendedClass('Magento\Framework\Model\ResourceModel\Db\AbstractDb')
+                ->addUse('Magento\Framework\Model\ResourceModel\Db\AbstractDb')
+                ->addMethod(
+                    '_construct',
+                    [],
+                    MethodGenerator::FLAG_PROTECTED,
+                    '$this->_init(\'' . $mainTable . '\', \'' . $idFieldName . '\');',
+                    (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
+                );
+        });
     }
 
     /**
+     * @param string $filename
      * @param string $class
      * @param string $resourceClass
      * @return ClassGenerator
      */
-    private function createModel($class, $resourceClass)
+    private function createModel($filename, $class, $resourceClass)
     {
-        return (new ClassGenerator($class))
-            ->setExtendedClass('Magento\Framework\Model\AbstractModel')
-            ->addUse('Magento\Framework\Model\AbstractModel')
-            ->addUse($resourceClass, 'ResourceModel')
-            ->addMethod(
-                '_construct',
-                [],
-                MethodGenerator::FLAG_PROTECTED,
-                '$this->_init(ResourceModel::class);',
-                (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
-            );
+        $this->generateFile($filename, function () use ($class, $resourceClass) {
+            return (new ClassGenerator($class))
+                ->setExtendedClass('Magento\Framework\Model\AbstractModel')
+                ->addUse('Magento\Framework\Model\AbstractModel')
+                ->addUse($resourceClass, 'ResourceModel')
+                ->addMethod(
+                    '_construct',
+                    [],
+                    MethodGenerator::FLAG_PROTECTED,
+                    '$this->_init(ResourceModel::class);',
+                    (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
+                );
+        });
     }
 
     /**
+     * @param string $filename
      * @param string $class
      * @param string $modelClass
      * @param string $resourceClass
      * @return ClassGenerator
      */
-    private function createCollection($class, $modelClass, $resourceClass)
+    private function createCollection($filename, $class, $modelClass, $resourceClass)
     {
-        return (new ClassGenerator($class))
-            ->setExtendedClass('Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection')
-            ->addUse('Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection')
-            ->addUse($modelClass, 'Model')
-            ->addUse($resourceClass, 'ResourceModel')
-            ->addMethod(
-                '_construct',
-                [],
-                MethodGenerator::FLAG_PROTECTED,
-                '$this->_init(Model::class, ResourceModel::class);',
-                (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
-            );
+        $this->generateFile($filename, function () use ($class, $modelClass, $resourceClass) {
+            return (new ClassGenerator($class))
+                ->setExtendedClass('Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection')
+                ->addUse('Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection')
+                ->addUse($modelClass, 'Model')
+                ->addUse($resourceClass, 'ResourceModel')
+                ->addMethod(
+                    '_construct',
+                    [],
+                    MethodGenerator::FLAG_PROTECTED,
+                    '$this->_init(Model::class, ResourceModel::class);',
+                    (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
+                );
+        });
     }
 
     /**
      * @param string $filename
-     * @param ClassGenerator $classGenerator
      * @return void
      */
-    private function generateFile($filename, $classGenerator)
+    private function generateFile($filename, $callback)
     {
+        if (is_file($filename)) {
+            return;
+        }
+
         $dir = dirname($filename);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
@@ -226,7 +240,7 @@ class CreateModel extends Command
 
         (new FileGenerator())
             ->setFilename($filename)
-            ->setClass($classGenerator)
+            ->setClass($callback())
             ->write();
     }
 }
