@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * Copyright (c) 2020 Zengliwei
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -18,14 +18,11 @@
 
 namespace CrazyCat\ModuleBuilder\Console\Command;
 
-use CrazyCat\ModuleBuilder\Model\Cache;
+use Exception;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
-use Laminas\Code\Generator\FileGenerator;
 use Laminas\Code\Generator\MethodGenerator;
-use Magento\Framework\Component\ComponentRegistrar;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -36,25 +33,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-class CreateModel extends Command
+class CreateModel extends AbstractCreateCommand
 {
     private const ARG_MAIN_TABLE = 'main-table';
-    private const ARG_MODULE_NAME = 'module-name';
     private const ARG_MODEL_PATH = 'model-path';
     private const OPT_ID_FIELD = 'id-field';
-
-    private Cache $cache;
-    private ComponentRegistrar $componentRegistrar;
-
-    public function __construct(
-        Cache $cache,
-        ComponentRegistrar $componentRegistrar,
-        string $name = null
-    ) {
-        $this->cache = $cache;
-        $this->componentRegistrar = $componentRegistrar;
-        parent::__construct($name);
-    }
 
     /**
      * @inheritdoc
@@ -99,30 +82,16 @@ class CreateModel extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $moduleName = $input->getArgument(self::ARG_MODULE_NAME) ?: $this->cache->getDataByKey('module_name');
-        if (!($dir = $this->componentRegistrar->getPath(ComponentRegistrar::MODULE, $moduleName))) {
-            return $output->writeln('<error>Module does not exists.</error>');
+        try {
+            [, $vendor, $module, $dir] = $this->getModuleInfo($input);
+        } catch (Exception $e) {
+            return $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
         }
 
         $modelPath = $input->getArgument(self::ARG_MODEL_PATH);
         if (!preg_match('/[A-Z][a-z]+(\\[A-Z][a-z]+)*/', $modelPath)) {
             return $output->writeln('<error>Invalid model path.</error>');
         }
-
-        if ($moduleName != $this->cache->getData('module_name')) {
-            [$vendor, $module] = explode('_', $moduleName);
-            $this->cache->setData(
-                [
-                    'module_name' => $moduleName,
-                    'vendor'      => $vendor,
-                    'module'      => $module
-                ]
-            );
-        } else {
-            $vendor = $this->cache->getDataByKey('vendor');
-            $module = $this->cache->getDataByKey('module');
-        }
-
         $path = str_replace('\\', '/', $modelPath);
 
         $modelClass = $vendor . '\\' . $module . '\\Model\\' . $modelPath;
@@ -221,26 +190,5 @@ class CreateModel extends Command
                     (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
                 );
         });
-    }
-
-    /**
-     * @param string $filename
-     * @return void
-     */
-    private function generateFile($filename, $callback)
-    {
-        if (is_file($filename)) {
-            return;
-        }
-
-        $dir = dirname($filename);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        (new FileGenerator())
-            ->setFilename($filename)
-            ->setClass($callback())
-            ->write();
     }
 }

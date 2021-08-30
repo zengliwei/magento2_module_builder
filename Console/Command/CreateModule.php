@@ -18,13 +18,10 @@
 
 namespace CrazyCat\ModuleBuilder\Console\Command;
 
-use CrazyCat\ModuleBuilder\Model\Cache;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\FileGenerator;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Component\ComponentRegistrar;
-use Magento\Framework\Filesystem;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -35,30 +32,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-class CreateModule extends Command
+class CreateModule extends AbstractCreateCommand
 {
-    private const ARG_MODULE_NAME = 'module-name';
     private const ARG_PACKAGE_NAME = 'package-name';
     private const OPT_AUTHOR = 'author';
     private const OPT_PACKAGE_DESC = 'package-description';
     private const OPT_PACKAGE_LICENSE = 'license';
     private const OPT_PACKAGE_VERSION = 'package-version';
-
-    private Cache $cache;
-    private ComponentRegistrar $componentRegistrar;
-    private Filesystem $filesystem;
-
-    public function __construct(
-        Cache $cache,
-        ComponentRegistrar $componentRegistrar,
-        Filesystem $filesystem,
-        string $name = null
-    ) {
-        $this->cache = $cache;
-        $this->componentRegistrar = $componentRegistrar;
-        $this->filesystem = $filesystem;
-        parent::__construct($name);
-    }
 
     /**
      * @inheritdoc
