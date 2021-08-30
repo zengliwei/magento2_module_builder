@@ -22,8 +22,12 @@ use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
+use Magento\Framework\App\Area;
+use Magento\Framework\App\AreaList;
+use Magento\Framework\App\Route\Config\Reader;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -35,6 +39,21 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
 {
     private const ARG_CONTROLLER_PATH = 'controller-path';
     private const ARG_MODEL_PATH = 'model-path';
+    private const OPT_ROUTE_NAME = 'route-name';
+
+    private AreaList $areaList;
+    private Reader $routeConfigReader;
+
+    public function __construct(
+        AreaList $areaList,
+        Reader $routeConfigReader,
+        Context $context,
+        string $name = null
+    ) {
+        $this->areaList = $areaList;
+        $this->routeConfigReader = $routeConfigReader;
+        parent::__construct($context, $name);
+    }
 
     /**
      * @inheritdoc
@@ -62,9 +81,36 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                         'Module name, use the cached one (%s) if not set',
                         $this->cache->getDataByKey('module_name')
                     )
+                ),
+                new InputOption(
+                    self::OPT_ROUTE_NAME,
+                    'r',
+                    InputArgument::REQUIRED,
+                    'Route name'
                 )
             ]
         );
+    }
+
+    /**
+     * @param string         $moduleName
+     * @param InputInterface $input
+     */
+    protected function getRoute($moduleName, InputInterface $input)
+    {
+        $routers = $this->routeConfigReader->read(Area::AREA_ADMINHTML);
+        $routes = $routers[$this->areaList->getDefaultRouter(Area::AREA_ADMINHTML)]['routes'] ?? null;
+        $route = null;
+        foreach ($routes as $info) {
+            if (in_array($moduleName, $info['modules'])) {
+                $route = $info['id'];
+                break;
+            }
+        }
+        if ($route === null) {
+            $route = $input->getOption(self::OPT_ROUTE_NAME);
+        }
+        return $route;
     }
 
     /**
@@ -88,13 +134,14 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             return $output->writeln('<error>Invalid model path.</error>');
         }
 
+        $route = $this->getRoute($moduleName, $input);
+
         $dir = $root . '/Controller/Adminhtml/' . str_replace('\\', '/', $controllerPath) . '/';
         $namespace = $vendor . '\\' . $module . '\\Controller\\' . $controllerPath . '\\';
-
         $controllerInfo = [
-            'key' => $key = strtolower($module . '_' . str_replace('\\', '_', $controllerPath)),
+            'key'         => $key = strtolower($module . '_' . str_replace('\\', '_', $controllerPath)),
             'active_menu' => $moduleName . '::' . $key,
-            'page_title' => str_replace('\\', ' ', $controllerPath),
+            'page_title'  => str_replace('\\', ' ', $controllerPath),
             'model_class' => $vendor . '\\' . $module . '\\Model\\' . $modelPath
         ];
 
@@ -104,6 +151,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         $this->createDeleteController($dir . 'Delete.php', $namespace . 'Delete', $controllerInfo);
         $this->createSaveController($dir . 'Save.php', $namespace . 'Save', $controllerInfo);
         $this->createMassSaveController($dir . 'MassSave.php', $namespace . 'MassSave', $controllerInfo);
+
         $this->createLayout();
         $this->createUiComponent();
 

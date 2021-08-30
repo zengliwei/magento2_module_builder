@@ -38,17 +38,13 @@ abstract class AbstractCreateCommand extends Command
 
     protected Cache $cache;
     protected ComponentRegistrar $componentRegistrar;
-    protected Filesystem $filesystem;
 
     public function __construct(
-        Cache $cache,
-        ComponentRegistrar $componentRegistrar,
-        Filesystem $filesystem,
+        Context $context,
         string $name = null
     ) {
-        $this->cache = $cache;
-        $this->componentRegistrar = $componentRegistrar;
-        $this->filesystem = $filesystem;
+        $this->cache = $context->getCache();
+        $this->componentRegistrar = $context->getComponentRegistrar();
         parent::__construct($name);
     }
 
