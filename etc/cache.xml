@@ -19,7 +19,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
 
     <type name="module_builder" translate="label,description"
-          instance="CrazyCat\ModuleBuilder\Cache\Type\ModuleBuilder">
+          instance="CrazyCat\ModuleBuilder\Model\Cache\Type\ModuleBuilder">
         <label>Module Builder</label>
         <description>Used to cache module information to help building</description>
     </type>
