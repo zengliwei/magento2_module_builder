@@ -35,7 +35,7 @@ class UiFormGenerator extends AbstractXmlConfig
         $this->root = new SimpleXMLElement('<?xml version="1.0"?><form/>');
         $this->root->addAttribute(
             'xsi:noNamespaceSchemaLocation',
-            'magento:module:Magento_Ui:etc/ui_configuration.xsd',
+            'urn:magento:module:Magento_Ui:etc/ui_configuration.xsd',
             'http://www.w3.org/2001/XMLSchema-instance',
         );
 
@@ -96,32 +96,55 @@ class UiFormGenerator extends AbstractXmlConfig
             ]
         ]);
 
-        $settingsNode = $this->root->addChild('settings');
-
-        $submitUrlNode = $settingsNode->addChild('submitUrl', 'data');
+        $settingsNode = $dataSourceNode->addChild('settings');
+        $submitUrlNode = $settingsNode->addChild('submitUrl');
         $submitUrlNode->addAttribute('path', $submitUrl);
 
-        $dataProviderNode = $settingsNode->addChild('dataProvider');
+        $dataProviderNode = $dataSourceNode->addChild('dataProvider');
         $dataProviderNode->addAttribute('class', $dataProviderClass);
         $dataProviderNode->addAttribute('name', $dataProviderName);
+
+        $dataProviderSettingsNode = $dataProviderNode->addChild('settings');
+        $dataProviderSettingsNode->addChild('requestFieldName', 'id');
+        $dataProviderSettingsNode->addChild('primaryFieldName', 'id');
     }
 
     public function addButton($name, $label, $class, $url = null, $aclResource = null, $params = [])
     {
-        print_r($this->root->xpath('/form/settings'));
+        $settingsNode = $this->root->xpath('/form/settings')[0];
+
+        $buttonsNodes = $settingsNode->xpath('buttons');
+        $buttonsNode = empty($buttonsNodes)
+            ? $settingsNode->addChild('buttons')
+            : $buttonsNodes[0];
+
+        $buttonNode = $buttonsNode->addChild('button');
+        $buttonNode->addAttribute('name', $name);
+        $buttonNode->addChild('label', $label);
+        $buttonNode->addChild('class', $class);
+        if ($url !== null) {
+            $urlNode = $buttonNode->addChild('url');
+            $urlNode->addAttribute('path', $url);
+        }
+        if ($aclResource !== null) {
+            $buttonNode->addChild('aclResource', $aclResource);
+        }
+
+        $this->assignArguments($buttonNode, $params, 'param');
     }
 
     /**
-     * @param string $name
+     * @param string      $name
+     * @param string|null $label
      * @return SimpleXMLElement
      */
-    public function addFieldset($name)
+    public function addFieldset($name, $label = null)
     {
         $fieldsetNode = $this->root->addChild('fieldset');
         $fieldsetNode->addAttribute('name', $name);
 
         $settingsNode = $fieldsetNode->addChild('settings');
-        $settingsNode->addChild('label');
+        $settingsNode->addChild('label', $label);
 
         return $fieldsetNode;
     }
@@ -142,10 +165,13 @@ class UiFormGenerator extends AbstractXmlConfig
 
         $this->assignArguments($fieldNode, $arguments);
 
-        $settingsNode = $fieldsetNode->addChild('settings');
+        $settingsNode = $fieldNode->addChild('settings');
         foreach ($settings as $nodeName => $value) {
             $settingNode = $settingsNode->addChild($nodeName, is_array($value) ? null : $value);
             if (is_array($value)) {
+                foreach ($value as $k => $v) {
+                    $settingNode->addChild($k, $v);
+                }
             }
         }
     }

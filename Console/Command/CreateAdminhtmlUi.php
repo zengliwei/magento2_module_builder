@@ -169,9 +169,9 @@ XML;
         $namespace = $vendor . '\\' . $module . '\\Controller\\' . $controllerPath . '\\';
         $key = strtolower($module . '_' . str_replace('\\', '_', $controllerPath));
         $controllerInfo = [
-            'key' => $key,
+            'key'         => $key,
             'active_menu' => $moduleName . '::' . $key,
-            'page_title' => str_replace('\\', ' ', $controllerPath),
+            'page_title'  => str_replace('\\', ' ', $controllerPath),
             'model_class' => $vendor . '\\' . $module . '\\Model\\' . $modelPath
         ];
 
@@ -341,148 +341,80 @@ XML;
 
     private function createFormUiComponent($route, $key, $modelPath, $dir)
     {
-        $namespace = 'test_module_test';
-        $dataProviderClass = 'vendor\Module\Model\Test\DataProvider';
+        $namespace = 'test_module_test_form';
+        $dataProviderClass = 'Vendor\Module\Model\Test\DataProvider';
         $submitUrl = 'test/test/save';
+
         $uiFormGenerator = new UiFormGenerator($namespace, $dataProviderClass, $submitUrl);
         $uiFormGenerator->addButton('back', 'Back', 'back', '*/*/index');
-        $uiFormGenerator->write($dir . '/' . $namespace . '_form.xml');
+        $uiFormGenerator->addButton('reset', 'Reset', 'reset');
+        $uiFormGenerator->addButton(
+            'save',
+            'Save',
+            'save primary',
+            null,
+            null,
+            $uiFormGenerator->transformArray(
+                [
+                    'data_attribute' => [
+                        'mage-init' => [
+                            'buttonAdapter' => [
+                                'actions' => [
+                                    [
+                                        'targetName' => "{$namespace}.{$namespace}",
+                                        'actionName' => 'save',
+                                        'params'     => [true, ['back' => 'continue']]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    'class_name'     => 'Magento\Ui\Component\Control\SplitButton',
+                    'options'        => [
+                        [
+                            'id_hard'        => 'save_and_close',
+                            'label'          => 'Save and Close',
+                            'data_attribute' => [
+                                'mage-init' => [
+                                    'buttonAdapter' => [
+                                        'actions' => [
+                                            [
+                                                'targetName' => "{$namespace}.{$namespace}",
+                                                'actionName' => 'save',
+                                                'params'     => [true, ['back' => 'close']]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            )
+        );
 
-        return;
-        $uiComponentKey = $route . '_' . $key;
-        $vendor = $this->cache->getDataByKey('vendor');
-        $module = $this->cache->getDataByKey('vendor');
-        $dataProvider = "{$vendor}\{$module}\Model\{$modelPath}\DataProvider";
-        $xmlStr = <<<XML
-<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
-    <argument name="data" xsi:type="array">
-        <item name="js_config" xsi:type="array">
-            <item name="provider" xsi:type="string">{$uiComponentKey}_form.form_data_source</item>
-        </item>
-        <item name="label" xsi:type="string" translate="true">General Information</item>
-        <item name="template" xsi:type="string">templates/form/collapsible</item>
-    </argument>
-    <settings>
-        <buttons>
-            <button name="back">
-                <label translate="true">Back</label>
-                <class>back</class>
-                <url path="*/*/index"/>
-            </button>
-            <button name="reset">
-                <label translate="true">Reset</label>
-                <class>reset</class>
-            </button>
-            <button name="save">
-                <label translate="true">Save</label>
-                <class>save primary</class>
-                <param name="data_attribute" xsi:type="array">
-                    <item name="mage-init" xsi:type="array">
-                        <item name="buttonAdapter" xsi:type="array">
-                            <item name="actions" xsi:type="array">
-                                <item name="0" xsi:type="array">
-                                    <item name="targetName" xsi:type="string">{$uiComponentKey}_form.{$uiComponentKey}_form</item>
-                                    <item name="actionName" xsi:type="string">save</item>
-                                    <item name="params" xsi:type="array">
-                                        <item name="0" xsi:type="boolean">true</item>
-                                        <item name="1" xsi:type="array">
-                                            <item name="back" xsi:type="string">continue</item>
-                                        </item>
-                                    </item>
-                                </item>
-                            </item>
-                        </item>
-                    </item>
-                </param>
-                <param name="class_name" xsi:type="string">Magento\Ui\Component\Control\SplitButton</param>
-                <param name="options" xsi:type="array">
-                    <item name="0" xsi:type="array">
-                        <item name="id_hard" xsi:type="string">save_and_close</item>
-                        <item name="label" xsi:type="string">Save and Close</item>
-                        <item name="data_attribute" xsi:type="array">
-                            <item name="mage-init" xsi:type="array">
-                                <item name="buttonAdapter" xsi:type="array">
-                                    <item name="actions" xsi:type="array">
-                                        <item name="0" xsi:type="array">
-                                            <item name="targetName" xsi:type="string">
-                                                {$uiComponentKey}_form.{$uiComponentKey}_form
-                                            </item>
-                                            <item name="actionName" xsi:type="string">save</item>
-                                            <item name="params" xsi:type="array">
-                                                <item name="0" xsi:type="boolean">true</item>
-                                                <item name="1" xsi:type="array">
-                                                    <item name="back" xsi:type="string">close</item>
-                                                </item>
-                                            </item>
-                                        </item>
-                                    </item>
-                                </item>
-                            </item>
-                        </item>
-                    </item>
-                </param>
-            </button>
-        </buttons>
-        <namespace>{$uiComponentKey}_form</namespace>
-        <dataScope>data</dataScope>
-        <deps>
-            <dep>{$uiComponentKey}_form.{$uiComponentKey}_form_data_provider</dep>
-        </deps>
-    </settings>
-    <dataSource name="form_data_source">
-        <argument name="data" xsi:type="array">
-            <item name="js_config" xsi:type="array">
-                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
-            </item>
-        </argument>
-        <settings>
-            <submitUrl path="brand/brand/save"/>
-        </settings>
-        <dataProvider class="{$dataProvider}"
-                      name="{$uiComponentKey}_form_data_provider">
-            <settings>
-                <requestFieldName>id</requestFieldName>
-                <primaryFieldName>id</primaryFieldName>
-            </settings>
-        </dataProvider>
-    </dataSource>
-    <fieldset name="general">
-        <settings>
-            <label/>
-        </settings>
-        <field name="id" formElement="input">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="source" xsi:type="string">data</item>
-                </item>
-            </argument>
-            <settings>
-                <dataType>text</dataType>
-                <visible>false</visible>
-                <dataScope>data.id</dataScope>
-            </settings>
-        </field>
-        <field name="name" formElement="input">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="source" xsi:type="string">data</item>
-                </item>
-            </argument>
-            <settings>
-                <dataType>text</dataType>
-                <dataScope>data.name</dataScope>
-                <label translate="true">Name</label>
-                <notice translate="true">[store view]</notice>
-                <validation>
-                    <rule name="required-entry" xsi:type="boolean">true</rule>
-                </validation>
-            </settings>
-        </field>
-    </fieldset>
-</form>
-XML;
-        file_put_contents($dir . '/' . $uiComponentKey . '_form.xml', $xmlStr);
+        $fieldsetNode = $uiFormGenerator->addFieldset('general');
+        $uiFormGenerator->addField(
+            $fieldsetNode,
+            'id',
+            'input',
+            [
+                'dataType'  => 'text',
+                'visible'   => 'false',
+                'dataScope' => 'data.id'
+            ],
+            $uiFormGenerator->transformArray(
+                [
+                    'data' => [
+                        'config' => [
+                            'source' => 'data'
+                        ]
+                    ]
+                ]
+            )
+        );
+
+        $uiFormGenerator->write($dir . '/' . $namespace . '_form.xml');
     }
 
     /**

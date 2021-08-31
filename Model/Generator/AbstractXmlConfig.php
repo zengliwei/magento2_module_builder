@@ -54,19 +54,35 @@ abstract class AbstractXmlConfig
      * @param SimpleXMLElement $node
      * @param array            $arguments
      */
-    protected function assignArguments($node, $arguments, $isInner = false)
+    protected function assignArguments($node, $arguments, $nodeName = 'argument', $isInner = false)
     {
         foreach ($arguments as $argument) {
             $argumentNode = $node->addChild(
-                $isInner ? 'item' : 'argument',
-                (isset($argument['value']) && !is_array($argument['value'])) ?: null
+                $isInner ? 'item' : $nodeName,
+                (isset($argument['value']) && !is_array($argument['value'])) ? $argument['value'] : null
             );
             $argumentNode->addAttribute('name', $argument['name']);
-            $argumentNode->addAttribute('xsi:type', gettype($argument['value']));
+            $argumentNode->addAttribute('xmlns:xsi:type', gettype($argument['value']));
             if (is_array($argument['value'])) {
-                $this->assignArguments($argumentNode, $argument['value']);
+                $this->assignArguments($argumentNode, $argument['value'], $nodeName, true);
             }
         }
+    }
+
+    /**
+     * @param array $source
+     * @return array
+     */
+    public function transformArray(array $source)
+    {
+        $dist = [];
+        foreach ($source as $name => $value) {
+            if (is_array($value)) {
+                $value = $this->transformArray($value);
+            }
+            $dist[] = ['name' => $name, 'value' => $value];
+        }
+        return $dist;
     }
 
     /**
