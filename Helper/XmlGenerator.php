@@ -89,7 +89,7 @@ class XmlGenerator
                 $parentNode->addChild($key, $value);
             } elseif (is_array($value)) {
                 if ($this->isAssocArray($value)) {
-                    $this->assignDataToNode($parentNode->addChild($key), $value);
+                    $this->assignDataToNode($parentNode->addChild($key, $value[0] ?? null), $value);
                 } else {
                     foreach ($value as $info) {
                         $this->assignDataToNode($parentNode->addChild($key, $info[0] ?? null), $info);
