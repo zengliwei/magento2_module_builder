@@ -25,19 +25,14 @@ use SimpleXMLElement;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-class UiFormGenerator extends AbstractXmlConfig
+class UiFormGenerator extends XmlConfigGenerator
 {
     public function __construct(
         $namespace,
         $dataProviderClass,
         $submitUrl
     ) {
-        $this->root = new SimpleXMLElement('<?xml version="1.0"?><form/>');
-        $this->root->addAttribute(
-            'xsi:noNamespaceSchemaLocation',
-            'urn:magento:module:Magento_Ui:etc/ui_configuration.xsd',
-            'http://www.w3.org/2001/XMLSchema-instance',
-        );
+        $this->setRoot('form', 'urn:magento:module:Magento_Ui:etc/ui_configuration.xsd');
 
         $dataSourceName = 'form_data_source';
         $dataProviderName = 'form_data_provider';

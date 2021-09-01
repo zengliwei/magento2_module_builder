@@ -19,14 +19,13 @@
 namespace CrazyCat\ModuleBuilder\Model\Generator;
 
 use Magento\Framework\Exception\LocalizedException;
-use SimpleXMLElement;
 
 /**
  * @package CrazyCat\ModuleBuilder
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-class UiListingGenerator extends AbstractXmlConfig
+class UiListingGenerator extends XmlConfigGenerator
 {
     protected array $columnSettingsAttr = [
         'class'       => 'string',
@@ -42,12 +41,7 @@ class UiListingGenerator extends AbstractXmlConfig
         $aclResource,
         $actionPath
     ) {
-        $this->root = new SimpleXMLElement('<?xml version="1.0"?><listing/>');
-        $this->root->addAttribute(
-            'xsi:noNamespaceSchemaLocation',
-            'urn:magento:module:Magento_Ui:etc/ui_configuration.xsd',
-            'http://www.w3.org/2001/XMLSchema-instance',
-        );
+        $this->setRoot('listing', 'urn:magento:module:Magento_Ui:etc/ui_configuration.xsd');
 
         $dataSourceName = 'listing_data_source';
         $dataProviderName = 'listing_data_provider';

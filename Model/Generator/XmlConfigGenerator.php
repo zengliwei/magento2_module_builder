@@ -19,6 +19,7 @@
 namespace CrazyCat\ModuleBuilder\Model\Generator;
 
 use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
+use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Phrase;
 use SimpleXMLElement;
@@ -28,46 +29,9 @@ use SimpleXMLElement;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-abstract class AbstractXmlConfig extends XmlGenerator
+class XmlConfigGenerator extends XmlGenerator
 {
     protected SimpleXMLElement $root;
-
-    /**
-     * @param SimpleXMLElement $node
-     * @param array            $attributes
-     * @param array            $allowedAttributes
-     * @throws LocalizedException
-     */
-    protected function assignAttributes(
-        SimpleXMLElement $node,
-        array $attributes,
-        array $allowedAttributes
-    ) {
-        foreach ($attributes as $attribute => $value) {
-            if (!isset($allowedAttributes[$attribute])
-                || gettype($value) != $allowedAttributes[$attribute]
-            ) {
-                throw new LocalizedException(
-                    __('Attribute %1 dose not match type %2.', $attribute, $allowedAttributes[$attribute])
-                );
-            }
-            $node->addAttribute($attribute, $value);
-        }
-    }
-
-    /**
-     * @param SimpleXMLElement $node
-     * @param array            $arguments
-     * @param string           $nodeName
-     * @return void
-     */
-    protected function assignArguments(
-        SimpleXMLElement $node,
-        array $arguments,
-        $nodeName = 'argument'
-    ) {
-        $this->assignDataToNode($node, $this->toArgumentArray($arguments, $nodeName));
-    }
 
     /**
      * @param array  $source
@@ -102,6 +66,66 @@ abstract class AbstractXmlConfig extends XmlGenerator
             }
         }
         return $arguments;
+    }
+
+    /**
+     * @param SimpleXMLElement $node
+     * @param array            $arguments
+     * @param string           $nodeName
+     * @return void
+     */
+    public function assignArguments(
+        SimpleXMLElement $node,
+        array $arguments,
+        $nodeName = 'argument'
+    ) {
+        $this->assignDataToNode($node, $this->toArgumentArray($arguments, $nodeName));
+    }
+
+    /**
+     * @param SimpleXMLElement $node
+     * @param array            $attributes
+     * @param array            $allowedAttributes
+     * @throws LocalizedException
+     */
+    public function assignAttributes(
+        SimpleXMLElement $node,
+        array $attributes,
+        array $allowedAttributes
+    ) {
+        foreach ($attributes as $attribute => $value) {
+            if (!isset($allowedAttributes[$attribute])
+                || gettype($value) != $allowedAttributes[$attribute]
+            ) {
+                throw new LocalizedException(
+                    __('Attribute %1 dose not match type %2.', $attribute, $allowedAttributes[$attribute])
+                );
+            }
+            $node->addAttribute($attribute, $value);
+        }
+    }
+
+    /**
+     * @return SimpleXMLElement
+     */
+    public function getRoot()
+    {
+        return $this->root;
+    }
+
+    /**
+     * @return SimpleXMLElement
+     * @throws Exception
+     */
+    public function setRoot($rootName, $schemaLocation)
+    {
+        $this->root = new SimpleXMLElement('<?xml version="1.0"?><' . $rootName . '/>');
+        $this->root->addAttribute(
+            'xsi:noNamespaceSchemaLocation',
+            $schemaLocation,
+            'http://www.w3.org/2001/XMLSchema-instance',
+        );
+        return $this->root;
     }
 
     /**

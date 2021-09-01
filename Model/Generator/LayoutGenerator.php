@@ -26,7 +26,7 @@ use SimpleXMLElement;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-class LayoutGenerator extends AbstractXmlConfig
+class LayoutGenerator extends XmlConfigGenerator
 {
     protected SimpleXMLElement $body;
 
@@ -92,13 +92,7 @@ class LayoutGenerator extends AbstractXmlConfig
 
     public function __construct()
     {
-        $this->root = new SimpleXMLElement('<?xml version="1.0"?><page/>');
-        $this->root->addAttribute(
-            'xsi:noNamespaceSchemaLocation',
-            'urn:magento:framework:View/Layout/etc/page_configuration.xsd',
-            'http://www.w3.org/2001/XMLSchema-instance',
-        );
-
+        $this->setRoot('page', 'urn:magento:framework:View/Layout/etc/page_configuration.xsd');
         $this->body = $this->root->addChild('body');
     }
 

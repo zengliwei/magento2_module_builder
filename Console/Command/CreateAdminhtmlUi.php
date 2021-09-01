@@ -21,6 +21,7 @@ namespace CrazyCat\ModuleBuilder\Console\Command;
 use CrazyCat\ModuleBuilder\Model\Generator\LayoutGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiFormGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiListingGenerator;
+use CrazyCat\ModuleBuilder\Model\Generator\XmlConfigGenerator;
 use Exception;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
@@ -119,22 +120,19 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             throw new Exception('Route name of the module is not specified.');
         }
 
-        $xmlStr = <<<XML
-<?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
-    <router id="admin">
-        <route id="$route" frontName="$route">
-            <module name="$moduleName" before="Magento_Backend"/>
-        </route>
-    </router>
-</config>
-XML;
-        $dir = $this->cache->getDataByKey('dir') . '/etc/adminhtml';
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        file_put_contents($dir . '/routes.xml', $xmlStr);
+        $configGenerator = new XmlConfigGenerator();
+        $rootNode = $configGenerator->setRoot('config', 'urn:magento:framework:App/etc/routes.xsd');
+        $configGenerator->assignDataToNode($rootNode, [
+            'router' => [
+                '@id'   => 'admin',
+                'route' => [
+                    '@id'        => $route,
+                    '@frontName' => $route,
+                    'module'     => ['@name' => $moduleName, '@before' => 'Magento_Backend']
+                ]
+            ]
+        ]);
+        $configGenerator->write($this->cache->getDataByKey('dir') . '/etc/adminhtml/routes.xml');
 
         return $route;
     }
@@ -166,42 +164,47 @@ XML;
             return $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
         }
 
-        $dir = $root . '/Controller/Adminhtml/' . str_replace('\\', '/', $controllerPath) . '/';
-        $namespace = $vendor . '\\' . $module . '\\Controller\\' . $controllerPath . '\\';
-        $key = strtolower($module . '_' . str_replace('\\', '_', $controllerPath));
+        $controllerDir = $root . '/Controller/Adminhtml/' . str_replace('\\', '/', $controllerPath) . '/';
+        $layoutDir = $root . '/view/adminhtml/layout';
+        $uiComponentDir = $root . '/view/adminhtml/ui_component';
+
+        $namespace = $vendor . '\\' . $module . '\\Controller\\' . $controllerPath;
+        $modelClass = $vendor . '\\' . $module . '\\Model\\' . $modelPath;
+        $dataProviderClass = $modelClass . '\\DataProvider';
+
+        $key = strtolower(str_replace('\\', '_', $controllerPath));
+        $persistKey = strtolower($module . '_' . $key);
+        $uiNamespace = $route . '_' . $key;
+
+        $aclResource = $moduleName . '::' . $uiNamespace;
+        $uiListingActionPath = $route . '/' . $key;
+        $uiFormSubmitUrl = $uiListingActionPath . '/save';
+
         $controllerInfo = [
-            'key'         => $key,
-            'active_menu' => $moduleName . '::' . $key,
+            'persist_key' => $persistKey,
+            'active_menu' => $moduleName . '::' . $persistKey,
             'page_title'  => str_replace('\\', ' ', $controllerPath),
-            'model_class' => $vendor . '\\' . $module . '\\Model\\' . $modelPath
+            'model_class' => $modelClass
         ];
 
-        $this->createIndexController($dir . 'Index.php', $namespace . 'Index', $controllerInfo);
-        $this->createNewController($dir . 'NewAction.php', $namespace . 'NewAction');
-        $this->createEditController($dir . 'Edit.php', $namespace . 'Edit', $controllerInfo);
-        $this->createDeleteController($dir . 'Delete.php', $namespace . 'Delete', $controllerInfo);
-        $this->createSaveController($dir . 'Save.php', $namespace . 'Save', $controllerInfo);
-        $this->createMassSaveController($dir . 'MassSave.php', $namespace . 'MassSave', $controllerInfo);
+        $this->createIndexController($controllerDir, $namespace, $controllerInfo);
+        $this->createNewController($controllerDir, $namespace);
+        $this->createEditController($controllerDir, $namespace, $controllerInfo);
+        $this->createDeleteController($controllerDir, $namespace, $controllerInfo);
+        $this->createSaveController($controllerDir, $namespace, $controllerInfo);
+        $this->createMassSaveController($controllerDir, $namespace, $controllerInfo);
 
-        $namespace = $route . '_' . $key;
+        $this->createIndexLayout($layoutDir, $uiNamespace);
+        $this->createNewLayout($layoutDir, $uiNamespace);
+        $this->createEditLayout($layoutDir, $uiNamespace);
 
-        $layoutDir = $root . '/view/adminhtml/layout';
-        $this->createIndexLayout($namespace, $layoutDir);
-        $this->createNewLayout($namespace, $layoutDir);
-        $this->createEditLayout($namespace, $layoutDir);
-
-        $uiComponentDir = $root . '/view/adminhtml/ui_component';
-        $aclResource = "{$moduleName}::{$namespace}";
-        $dataProviderClass = $vendor . '\\' . $module . '\\Model\\' . $modelPath . '\\DataProvider';
-        $actionPath = $route . '/' . $key;
-        $submitUrl = $actionPath . '/save';
-        $this->createListingUiComponent($namespace, $aclResource, $actionPath, $uiComponentDir);
-        $this->createFormUiComponent($namespace, $dataProviderClass, $submitUrl, $uiComponentDir);
+        $this->createListingUiComponent($uiComponentDir, $uiNamespace, $aclResource, $uiListingActionPath);
+        $this->createFormUiComponent($uiComponentDir, $uiNamespace, $dataProviderClass, $uiFormSubmitUrl);
 
         $output->writeln('<info>UI related files created.</info>');
     }
 
-    private function createListingUiComponent($namespace, $aclResource, $actionPath, $dir)
+    private function createListingUiComponent($dir, $namespace, $aclResource, $actionPath)
     {
         $namespace .= '_listing';
         $uiListingGenerator = new UiListingGenerator($namespace, $aclResource, $actionPath);
@@ -222,7 +225,7 @@ XML;
         $uiListingGenerator->write($dir . '/' . $namespace . '.xml');
     }
 
-    private function createFormUiComponent($namespace, $dataProviderClass, $submitUrl, $dir)
+    private function createFormUiComponent($dir, $namespace, $dataProviderClass, $submitUrl)
     {
         $namespace .= '_form';
 
@@ -285,11 +288,11 @@ XML;
     }
 
     /**
-     * @param string $key
      * @param string $dir
+     * @param string $key
      * @throws LocalizedException
      */
-    private function createIndexLayout($key, $dir)
+    private function createIndexLayout($dir, $key)
     {
         $layoutGenerator = new LayoutGenerator();
         $container = $layoutGenerator->referenceContainer('content');
@@ -298,10 +301,10 @@ XML;
     }
 
     /**
-     * @param string $key
      * @param string $dir
+     * @param string $key
      */
-    private function createNewLayout($key, $dir)
+    private function createNewLayout($dir, $key)
     {
         $layoutGenerator = new LayoutGenerator();
         $layoutGenerator->addUpdate($key . '_edit');
@@ -309,11 +312,11 @@ XML;
     }
 
     /**
-     * @param string $key
      * @param string $dir
+     * @param string $key
      * @throws LocalizedException
      */
-    private function createEditLayout($key, $dir)
+    private function createEditLayout($dir, $key)
     {
         $layoutGenerator = new LayoutGenerator();
         $layoutGenerator->addUpdate('editor');
@@ -323,15 +326,15 @@ XML;
     }
 
     /**
-     * @param string $filename
-     * @param string $class
+     * @param string $dir
+     * @param string $namespace
      * @param array  $info
      * @return void
      */
-    private function createIndexController($filename, $class, $info)
+    private function createIndexController($dir, $namespace, $info)
     {
-        $this->generateFile($filename, function () use ($class, $info) {
-            return (new ClassGenerator($class))
+        $this->generateFile($dir . 'Index.php', function () use ($namespace, $info) {
+            return (new ClassGenerator($namespace . '\Index'))
                 ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractIndexAction')
                 ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractIndexAction')
                 ->addMethod(
@@ -340,7 +343,7 @@ XML;
                     MethodGenerator::FLAG_PUBLIC,
                     sprintf(
                         'return $this->render(\'%s\', \'%s\', \'%s\');',
-                        $info['key'],
+                        $info['persist_key'],
                         $info['active_menu'],
                         $info['page_title']
                     ),
@@ -350,29 +353,29 @@ XML;
     }
 
     /**
-     * @param string $filename
-     * @param string $class
+     * @param string $dir
+     * @param string $namespace
      * @return void
      */
-    private function createNewController($filename, $class)
+    private function createNewController($dir, $namespace)
     {
-        $this->generateFile($filename, function () use ($class) {
-            return (new ClassGenerator($class))
+        $this->generateFile($dir . 'NewAction.php', function () use ($namespace) {
+            return (new ClassGenerator($namespace . '\NewAction'))
                 ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractNewAction')
                 ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractNewAction');
         });
     }
 
     /**
-     * @param string $filename
-     * @param string $class
+     * @param string $dir
+     * @param string $namespace
      * @param array  $info
      * @return void
      */
-    private function createEditController($filename, $class, $info)
+    private function createEditController($dir, $namespace, $info)
     {
-        $this->generateFile($filename, function () use ($class, $info) {
-            return (new ClassGenerator($class))
+        $this->generateFile($dir . 'Edit.php', function () use ($namespace, $info) {
+            return (new ClassGenerator($namespace . '\Edit'))
                 ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractEditAction')
                 ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractEditAction')
                 ->addUse($info['model_class'], 'Model')
@@ -394,15 +397,15 @@ XML;
     }
 
     /**
-     * @param string $filename
-     * @param string $class
+     * @param string $dir
+     * @param string $namespace
      * @param array  $info
      * @return void
      */
-    private function createDeleteController($filename, $class, $info)
+    private function createDeleteController($dir, $namespace, $info)
     {
-        $this->generateFile($filename, function () use ($class, $info) {
-            return (new ClassGenerator($class))
+        $this->generateFile($dir . 'Delete.php', function () use ($namespace, $info) {
+            return (new ClassGenerator($namespace . '\Delete'))
                 ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractDeleteAction')
                 ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractDeleteAction')
                 ->addUse($info['model_class'], 'Model')
@@ -422,15 +425,15 @@ XML;
     }
 
     /**
-     * @param string $filename
-     * @param string $class
+     * @param string $dir
+     * @param string $namespace
      * @param array  $info
      * @return void
      */
-    private function createSaveController($filename, $class, $info)
+    private function createSaveController($dir, $namespace, $info)
     {
-        $this->generateFile($filename, function () use ($class, $info) {
-            return (new ClassGenerator($class))
+        $this->generateFile($dir . 'Save.php', function () use ($namespace, $info) {
+            return (new ClassGenerator($namespace . '\Save'))
                 ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractSaveAction')
                 ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractSaveAction')
                 ->addUse($info['model_class'], 'Model')
@@ -443,7 +446,7 @@ XML;
                         'Model::class',
                         'Specified item does not exist.',
                         'Item saved successfully.',
-                        $info['key']
+                        $info['persist_key']
                     ),
                     (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
                 );
@@ -451,15 +454,15 @@ XML;
     }
 
     /**
-     * @param string $filename
-     * @param string $class
+     * @param string $dir
+     * @param string $namespace
      * @param array  $info
      * @return void
      */
-    private function createMassSaveController($filename, $class, $info)
+    private function createMassSaveController($dir, $namespace, $info)
     {
-        $this->generateFile($filename, function () use ($class, $info) {
-            return (new ClassGenerator($class))
+        $this->generateFile($dir . 'MassSave.php', function () use ($namespace, $info) {
+            return (new ClassGenerator($namespace . '\MassSave'))
                 ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractMassSaveAction')
                 ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractMassSaveAction')
                 ->addUse($info['model_class'], 'Model')
