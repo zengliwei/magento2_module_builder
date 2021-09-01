@@ -45,18 +45,10 @@ class UiFormGenerator extends AbstractXmlConfig
         $sourceProvider = "{$namespace}.{$dataProviderName}";
 
         $this->assignArguments($this->root, [
-            [
-                'name'  => 'data',
-                'value' => [
-                    [
-                        'name'  => 'js_config',
-                        'value' => [
-                            ['name' => 'provider', 'value' => $provider]
-                        ]
-                    ],
-                    ['name' => 'label', 'value' => 'General Information'],
-                    ['name' => 'template', 'value' => 'templates/form/collapsible']
-                ]
+            'data' => [
+                'js_config' => ['provider' => $provider],
+                'label'     => 'General Information',
+                'template'  => 'templates/form/collapsible'
             ]
         ]);
 
@@ -83,17 +75,7 @@ class UiFormGenerator extends AbstractXmlConfig
         $dataSourceNode->addAttribute('name', $dataSourceName);
 
         $this->assignArguments($dataSourceNode, [
-            [
-                'name'  => 'data',
-                'value' => [
-                    [
-                        'name'  => 'js_config',
-                        'value' => [
-                            ['name' => 'component', 'value' => 'Magento_Ui/js/form/provider']
-                        ]
-                    ],
-                ]
-            ]
+            'data' => ['js_config' => ['component' => 'Magento_Ui/js/form/provider']]
         ]);
 
         $settingsNode = $dataSourceNode->addChild('settings');

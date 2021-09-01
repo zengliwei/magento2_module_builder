@@ -124,7 +124,7 @@ class LayoutGenerator extends AbstractXmlConfig
      * @param string           $class
      * @param string           $name
      * @param array            $attributes
-     * @param array            $arguments  [['name' => string, 'value' => mixed]]
+     * @param array            $arguments  ['argument' => mixed]
      * @param array            $actions    [['method' => string, 'ifconfig' => string, 'arguments' => arguments]]
      * @return SimpleXMLElement
      * @throws LocalizedException

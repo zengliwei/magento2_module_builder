@@ -18,7 +18,9 @@
 
 namespace CrazyCat\ModuleBuilder\Model\Generator;
 
+use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Phrase;
 use SimpleXMLElement;
 
 /**
@@ -26,7 +28,7 @@ use SimpleXMLElement;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-abstract class AbstractXmlConfig
+abstract class AbstractXmlConfig extends XmlGenerator
 {
     protected SimpleXMLElement $root;
 
@@ -36,8 +38,11 @@ abstract class AbstractXmlConfig
      * @param array            $allowedAttributes
      * @throws LocalizedException
      */
-    protected function assignAttributes($node, $attributes, $allowedAttributes)
-    {
+    protected function assignAttributes(
+        SimpleXMLElement $node,
+        array $attributes,
+        array $allowedAttributes
+    ) {
         foreach ($attributes as $attribute => $value) {
             if (!isset($allowedAttributes[$attribute])
                 || gettype($value) != $allowedAttributes[$attribute]
@@ -53,36 +58,50 @@ abstract class AbstractXmlConfig
     /**
      * @param SimpleXMLElement $node
      * @param array            $arguments
+     * @param string           $nodeName
+     * @return void
      */
-    protected function assignArguments($node, $arguments, $nodeName = 'argument', $isInner = false)
-    {
-        foreach ($arguments as $argument) {
-            $argumentNode = $node->addChild(
-                $isInner ? 'item' : $nodeName,
-                (isset($argument['value']) && !is_array($argument['value'])) ? $argument['value'] : null
-            );
-            $argumentNode->addAttribute('name', $argument['name']);
-            $argumentNode->addAttribute('xmlns:xsi:type', gettype($argument['value']));
-            if (is_array($argument['value'])) {
-                $this->assignArguments($argumentNode, $argument['value'], $nodeName, true);
-            }
-        }
+    protected function assignArguments(
+        SimpleXMLElement $node,
+        array $arguments,
+        $nodeName = 'argument'
+    ) {
+        $this->assignDataToNode($node, $this->toArgumentArray($arguments, $nodeName));
     }
 
     /**
-     * @param array $source
+     * @param array  $source
+     * @param string $nodeName
      * @return array
      */
-    public function transformArray(array $source)
+    protected function toArgumentArray(array $source, $nodeName = 'argument')
     {
-        $dist = [];
-        foreach ($source as $name => $value) {
+        $arguments = [];
+        foreach ($source as $key => $value) {
+            $argument = [
+                '@name'           => $key,
+                '@xmlns:xsi:type' => ($value instanceof Phrase) ? 'string' : gettype($value)
+            ];
+
             if (is_array($value)) {
-                $value = $this->transformArray($value);
+                $argument = array_merge($argument, $this->toArgumentArray($value, 'item'));
+            } elseif ($value instanceof Phrase) {
+                $argument['@translate'] = 'true';
+                $argument[0] = $value;
+            } elseif (is_scalar($value)) {
+                $argument[0] = $value;
             }
-            $dist[] = ['name' => $name, 'value' => $value];
+
+            if (!isset($arguments[$nodeName])) {
+                $arguments[$nodeName] = $argument;
+            } else { // multiple nodes with same name in same level
+                if ($this->isAssocArray($arguments[$nodeName])) {
+                    $arguments[$nodeName] = [$arguments[$nodeName]];
+                }
+                $arguments[$nodeName][] = $argument;
+            }
         }
-        return $dist;
+        return $arguments;
     }
 
     /**

@@ -57,13 +57,13 @@ use SimpleXMLElement;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-class XmlCreator
+class XmlGenerator
 {
     /**
      * @param array $array
      * @return bool
      */
-    private function isAssocArray(array $array)
+    protected function isAssocArray(array $array)
     {
         foreach (array_keys($array) as $k) {
             if (!is_numeric($k)) {
@@ -106,7 +106,7 @@ class XmlCreator
      */
     public function arrayToXml(array $array, $root = 'root')
     {
-        $root = new \SimpleXMLElement("<$root/>");
+        $root = new SimpleXMLElement("<$root/>");
         $this->assignDataToNode($root, $array);
         return $root->asXML();
     }

@@ -20,6 +20,7 @@ namespace CrazyCat\ModuleBuilder\Console\Command;
 
 use CrazyCat\ModuleBuilder\Model\Generator\LayoutGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiFormGenerator;
+use CrazyCat\ModuleBuilder\Model\Generator\UiListingGenerator;
 use Exception;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
@@ -202,141 +203,26 @@ XML;
 
     private function createListingUiComponent($route, $key, $dir)
     {
-        $uiComponentKey = $route . '_' . $key;
-        $xmlStr = <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
-    <argument name="data" xsi:type="array">
-        <item name="js_config" xsi:type="array">
-            <item name="provider" xsi:type="string">{$uiComponentKey}_listing.listing_data_source</item>
-        </item>
-    </argument>
-    <settings>
-        <buttons>
-            <button name="add">
-                <label translate="true">Add New Brand</label>
-                <class>primary</class>
-                <url path="*/*/new"/>
-            </button>
-        </buttons>
-        <spinner>{$uiComponentKey}_columns</spinner>
-        <deps>
-            <dep>{$uiComponentKey}_listing.{$uiComponentKey}_listing_data_provider</dep>
-        </deps>
-    </settings>
-    <dataSource name="listing_data_source" component="Magento_Ui/js/grid/provider">
-        <settings>
-            <storageConfig>
-                <param name="indexField" xsi:type="string">id</param>
-            </storageConfig>
-            <updateUrl path="mui/index/render"/>
-        </settings>
-        <aclResource>CrazyCat_Brand::{$uiComponentKey}</aclResource>
-        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"
-                      name="{$uiComponentKey}_listing_data_provider">
-            <settings>
-                <primaryFieldName>id</primaryFieldName>
-                <requestFieldName>id</requestFieldName>
-            </settings>
-        </dataProvider>
-    </dataSource>
-    <listingToolbar name="listing_top">
-        <settings>
-            <sticky>true</sticky>
-        </settings>
-        <bookmark name="bookmarks"/>
-        <columnsControls name="columns_controls"/>
-        <filterSearch name="fulltext"/>
-        <filters name="listing_filters">
-            <settings>
-                <templates>
-                    <filters>
-                        <select>
-                            <param name="template" xsi:type="string">ui/grid/filters/elements/ui-select</param>
-                            <param name="component" xsi:type="string">Magento_Ui/js/form/element/ui-select</param>
-                        </select>
-                    </filters>
-                </templates>
-            </settings>
-        </filters>
-        <paging name="listing_paging"/>
-        <massaction name="listing_actions">
-            <action name="edit">
-                <settings>
-                    <callback>
-                        <target>editSelected</target>
-                        <provider>{$uiComponentKey}_listing.{$uiComponentKey}_listing.{$uiComponentKey}_columns_editor</provider>
-                    </callback>
-                    <type>edit</type>
-                    <label translate="true">Edit</label>
-                </settings>
-            </action>
-        </massaction>
-    </listingToolbar>
-    <columns name="{$uiComponentKey}_columns">
-        <settings>
-            <editorConfig>
-                <param name="clientConfig" xsi:type="array">
-                    <item name="saveUrl" xsi:type="url" path="brand/brand/massSave"/>
-                    <item name="validateBeforeSave" xsi:type="boolean">false</item>
-                </param>
-                <param name="indexField" xsi:type="string">id</param>
-                <param name="enabled" xsi:type="boolean">true</param>
-                <param name="selectProvider" xsi:type="string">
-                    {$uiComponentKey}_listing.{$uiComponentKey}_listing.{$uiComponentKey}_columns.ids
-                </param>
-            </editorConfig>
-            <childDefaults>
-                <param name="fieldAction" xsi:type="array">
-                    <item name="provider" xsi:type="string">
-                        {$uiComponentKey}_listing.{$uiComponentKey}_listing.{$uiComponentKey}_columns_editor
-                    </item>
-                    <item name="target" xsi:type="string">startEdit</item>
-                    <item name="params" xsi:type="array">
-                        <item name="0" xsi:type="string">\${ \$.\$data.rowIndex }</item>
-                        <item name="1" xsi:type="boolean">true</item>
-                    </item>
-                </param>
-            </childDefaults>
-        </settings>
-        <selectionsColumn name="ids">
-            <settings>
-                <indexField>id</indexField>
-            </settings>
-        </selectionsColumn>
-        <column name="id">
-            <settings>
-                <filter>textRange</filter>
-                <label translate="true">ID</label>
-                <sorting>asc</sorting>
-            </settings>
-        </column>
-        <column name="name">
-            <settings>
-                <filter>text</filter>
-                <label translate="true">Name</label>
-                <editor>
-                    <validation>
-                        <rule name="required-entry" xsi:type="boolean">true</rule>
-                    </validation>
-                    <editorType>text</editorType>
-                </editor>
-            </settings>
-        </column>
-        <actionsColumn name="actions" class="CrazyCat\Base\Ui\Component\Listing\Column\Actions">
-            <settings>
-                <fieldAction>
-                    <params>
-                        <param name="route" xsi:type="string">{$route}/{$key}</param>
-                    </params>
-                </fieldAction>
-            </settings>
-        </actionsColumn>
-    </columns>
-</listing>
-XML;
-        file_put_contents($dir . '/' . $uiComponentKey . '_listing.xml', $xmlStr);
+        $namespace = 'test_module_test_listing';
+        $aclResource = 'Vendor_Module::test_module_test';
+        $actionPath = 'test/test';
+
+        $uiListingGenerator = new UiListingGenerator($namespace, $aclResource, $actionPath);
+        $uiListingGenerator->addColumn('name', [
+            'filter' => 'text',
+            'label'  => ['@translate' => 'true', 'Name'],
+            'editor' => [
+                'editorType' => 'text',
+                'validation' => [
+                    'rule' => [
+                        '@name' => 'required-entry',
+                        '@xmlns:xsi:type' => 'boolean',
+                        'true'
+                    ]
+                ]
+            ]
+        ]);
+        $uiListingGenerator->write($dir . '/' . $namespace . '.xml');
     }
 
     private function createFormUiComponent($route, $key, $modelPath, $dir)
@@ -354,35 +240,33 @@ XML;
             'save primary',
             null,
             null,
-            $uiFormGenerator->transformArray(
-                [
-                    'data_attribute' => [
-                        'mage-init' => [
-                            'buttonAdapter' => [
-                                'actions' => [
-                                    [
-                                        'targetName' => "{$namespace}.{$namespace}",
-                                        'actionName' => 'save',
-                                        'params'     => [true, ['back' => 'continue']]
-                                    ]
+            [
+                'data_attribute' => [
+                    'mage-init' => [
+                        'buttonAdapter' => [
+                            'actions' => [
+                                [
+                                    'targetName' => "{$namespace}.{$namespace}",
+                                    'actionName' => 'save',
+                                    'params'     => [true, ['back' => 'continue']]
                                 ]
                             ]
                         ]
-                    ],
-                    'class_name'     => 'Magento\Ui\Component\Control\SplitButton',
-                    'options'        => [
-                        [
-                            'id_hard'        => 'save_and_close',
-                            'label'          => 'Save and Close',
-                            'data_attribute' => [
-                                'mage-init' => [
-                                    'buttonAdapter' => [
-                                        'actions' => [
-                                            [
-                                                'targetName' => "{$namespace}.{$namespace}",
-                                                'actionName' => 'save',
-                                                'params'     => [true, ['back' => 'close']]
-                                            ]
+                    ]
+                ],
+                'class_name'     => 'Magento\Ui\Component\Control\SplitButton',
+                'options'        => [
+                    [
+                        'id_hard'        => 'save_and_close',
+                        'label'          => 'Save and Close',
+                        'data_attribute' => [
+                            'mage-init' => [
+                                'buttonAdapter' => [
+                                    'actions' => [
+                                        [
+                                            'targetName' => "{$namespace}.{$namespace}",
+                                            'actionName' => 'save',
+                                            'params'     => [true, ['back' => 'close']]
                                         ]
                                     ]
                                 ]
@@ -390,7 +274,7 @@ XML;
                         ]
                     ]
                 ]
-            )
+            ]
         );
 
         $fieldsetNode = $uiFormGenerator->addFieldset('general');
@@ -403,18 +287,15 @@ XML;
                 'visible'   => 'false',
                 'dataScope' => 'data.id'
             ],
-            $uiFormGenerator->transformArray(
-                [
-                    'data' => [
-                        'config' => [
-                            'source' => 'data'
-                        ]
+            [
+                'data' => [
+                    'config' => [
+                        'source' => 'data'
                     ]
                 ]
-            )
+            ]
         );
-
-        $uiFormGenerator->write($dir . '/' . $namespace . '_form.xml');
+        $uiFormGenerator->write($dir . '/' . $namespace . '.xml');
     }
 
     /**
