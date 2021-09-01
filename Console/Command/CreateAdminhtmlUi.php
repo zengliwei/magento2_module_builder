@@ -183,30 +183,27 @@ XML;
         $this->createSaveController($dir . 'Save.php', $namespace . 'Save', $controllerInfo);
         $this->createMassSaveController($dir . 'MassSave.php', $namespace . 'MassSave', $controllerInfo);
 
-        $layoutKey = $route . '_' . $key;
+        $namespace = $route . '_' . $key;
 
-        if (!is_dir($dir = $root . '/view/adminhtml/layout')) {
-            mkdir($dir, 0755, true);
-        }
-        $this->createIndexLayout($layoutKey, $dir);
-        $this->createNewLayout($layoutKey, $dir);
-        $this->createEditLayout($layoutKey, $dir);
+        $layoutDir = $root . '/view/adminhtml/layout';
+        $this->createIndexLayout($namespace, $layoutDir);
+        $this->createNewLayout($namespace, $layoutDir);
+        $this->createEditLayout($namespace, $layoutDir);
 
-        if (!is_dir($dir = $root . '/view/adminhtml/ui_component')) {
-            mkdir($dir, 0755, true);
-        }
-        $this->createListingUiComponent($route, $key, $dir);
-        $this->createFormUiComponent($route, $key, $modelPath, $dir);
+        $uiComponentDir = $root . '/view/adminhtml/ui_component';
+        $aclResource = "{$moduleName}::{$namespace}";
+        $dataProviderClass = $vendor . '\\' . $module . '\\Model\\' . $modelPath . '\\DataProvider';
+        $actionPath = $route . '/' . $key;
+        $submitUrl = $actionPath . '/save';
+        $this->createListingUiComponent($namespace, $aclResource, $actionPath, $uiComponentDir);
+        $this->createFormUiComponent($namespace, $dataProviderClass, $submitUrl, $uiComponentDir);
 
         $output->writeln('<info>UI related files created.</info>');
     }
 
-    private function createListingUiComponent($route, $key, $dir)
+    private function createListingUiComponent($namespace, $aclResource, $actionPath, $dir)
     {
-        $namespace = 'test_module_test_listing';
-        $aclResource = 'Vendor_Module::test_module_test';
-        $actionPath = 'test/test';
-
+        $namespace .= '_listing';
         $uiListingGenerator = new UiListingGenerator($namespace, $aclResource, $actionPath);
         $uiListingGenerator->addColumn('name', [
             'filter' => 'text',
@@ -215,7 +212,7 @@ XML;
                 'editorType' => 'text',
                 'validation' => [
                     'rule' => [
-                        '@name' => 'required-entry',
+                        '@name'           => 'required-entry',
                         '@xmlns:xsi:type' => 'boolean',
                         'true'
                     ]
@@ -225,11 +222,9 @@ XML;
         $uiListingGenerator->write($dir . '/' . $namespace . '.xml');
     }
 
-    private function createFormUiComponent($route, $key, $modelPath, $dir)
+    private function createFormUiComponent($namespace, $dataProviderClass, $submitUrl, $dir)
     {
-        $namespace = 'test_module_test_form';
-        $dataProviderClass = 'Vendor\Module\Model\Test\DataProvider';
-        $submitUrl = 'test/test/save';
+        $namespace .= '_form';
 
         $uiFormGenerator = new UiFormGenerator($namespace, $dataProviderClass, $submitUrl);
         $uiFormGenerator->addButton('back', 'Back', 'back', '*/*/index');
@@ -277,24 +272,15 @@ XML;
             ]
         );
 
-        $fieldsetNode = $uiFormGenerator->addFieldset('general');
+        $fieldsetNode = $uiFormGenerator->addFieldset('general', null);
         $uiFormGenerator->addField(
             $fieldsetNode,
             'id',
             'input',
-            [
-                'dataType'  => 'text',
-                'visible'   => 'false',
-                'dataScope' => 'data.id'
-            ],
-            [
-                'data' => [
-                    'config' => [
-                        'source' => 'data'
-                    ]
-                ]
-            ]
+            ['dataType' => 'text', 'visible' => 'false', 'dataScope' => 'data.id'],
+            ['data' => ['config' => ['source' => 'data']]]
         );
+
         $uiFormGenerator->write($dir . '/' . $namespace . '.xml');
     }
 

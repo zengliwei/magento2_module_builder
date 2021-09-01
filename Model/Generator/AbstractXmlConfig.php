@@ -118,6 +118,10 @@ abstract class AbstractXmlConfig extends XmlGenerator
      */
     public function write($filename)
     {
+        $dir = dirname($filename);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
         $this->root->saveXML($filename);
     }
 }

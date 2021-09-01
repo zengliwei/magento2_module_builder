@@ -74,25 +74,27 @@ class XmlGenerator
     }
 
     /**
-     * @param SimpleXMLElement $parentNode
-     * @param array            $array
+     * @param SimpleXMLElement $node
+     * @param array            $data
      * @return void
      */
-    public function assignDataToNode(SimpleXMLElement $parentNode, array $array)
-    {
-        foreach ($array as $key => $value) {
+    public function assignDataToNode(
+        SimpleXMLElement $node,
+        array $data
+    ) {
+        foreach ($data as $key => $value) {
             if (strpos($key, '@') === 0) {
-                $parentNode->addAttribute(substr($key, 1), $value);
+                $node->addAttribute(substr($key, 1), $value);
             } elseif (is_numeric($key)) {
                 continue;
             } elseif (is_scalar($value) || $value === null) {
-                $parentNode->addChild($key, $value);
+                $node->addChild($key, $value);
             } elseif (is_array($value)) {
                 if ($this->isAssocArray($value)) {
-                    $this->assignDataToNode($parentNode->addChild($key, $value[0] ?? null), $value);
+                    $this->assignDataToNode($node->addChild($key, $value[0] ?? null), $value);
                 } else {
                     foreach ($value as $info) {
-                        $this->assignDataToNode($parentNode->addChild($key, $info[0] ?? null), $info);
+                        $this->assignDataToNode($node->addChild($key, $info[0] ?? null), $info);
                     }
                 }
             }

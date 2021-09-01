@@ -28,6 +28,15 @@ use SimpleXMLElement;
  */
 class UiListingGenerator extends AbstractXmlConfig
 {
+    protected array $columnSettingsAttr = [
+        'class'       => 'string',
+        'component'   => 'string',
+        'template'    => 'string',
+        'provider'    => 'string',
+        'extends'     => 'string',
+        'displayArea' => 'string'
+    ];
+
     public function __construct(
         $namespace,
         $aclResource,
@@ -182,15 +191,8 @@ class UiListingGenerator extends AbstractXmlConfig
     ) {
         $columnsNode = $this->root->xpath('/listing/columns')[0];
         $columnNode = $columnsNode->addChild('column');
-        $this->assignDataToNode($columnNode, [
-            '@name'      => $name,
-            '@sortOrder' => $sortOrder
-        ]);
-        $this->assignAttributes(
-            $columnNode,
-            $attributes,
-            ['class', 'component', 'template', 'provider', 'extends', 'displayArea']
-        );
+        $this->assignDataToNode($columnNode, ['@name' => $name, '@sortOrder' => $sortOrder]);
+        $this->assignAttributes($columnNode, $attributes, $this->columnSettingsAttr);
         $this->assignDataToNode($columnNode->addChild('settings'), $settings);
     }
 }

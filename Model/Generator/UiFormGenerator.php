@@ -52,58 +52,65 @@ class UiFormGenerator extends AbstractXmlConfig
             ]
         ]);
 
-        $settingsNode = $this->root->addChild('settings');
-        $settingsNode->addChild('namespace', $namespace);
-        $settingsNode->addChild('dataScope', 'data');
-
-        $depsNode = $settingsNode->addChild('deps');
-        $depsNode->addChild('dep', $sourceProvider);
-
-        $this->initDataSource($dataSourceName, $dataProviderClass, $dataProviderName, $submitUrl);
+        $this->assignDataToNode($this->root, [
+            'settings'   => [
+                'dataScope' => 'data',
+                'namespace' => $namespace,
+                'deps'      => ['dep' => $sourceProvider],
+                'buttons'   => null
+            ],
+            'dataSource' => [
+                '@name'        => $dataSourceName,
+                'argument'     => [
+                    'data' => [
+                        '@xmlns:xsi:type' => 'array',
+                        'js_config'       => [
+                            '@xmlns:xsi:type' => 'array',
+                            'component'       => [
+                                '@xmlns:xsi:type' => 'string',
+                                'Magento_Ui/js/form/provider'
+                            ]
+                        ]
+                    ]
+                ],
+                'settings'     => [
+                    'submitUrl' => ['@path' => $submitUrl]
+                ],
+                'dataProvider' => [
+                    '@class'   => $dataProviderClass,
+                    '@name'    => $dataProviderName,
+                    'settings' => [
+                        'requestFieldName' => 'id',
+                        'primaryFieldName' => 'id'
+                    ]
+                ]
+            ]
+        ]);
     }
 
     /**
-     * @param string $dataSourceName
-     * @param string $dataProviderClass
-     * @param string $dataProviderName
-     * @param string $submitUrl
-     * @return void
+     * @param string      $name
+     * @param string      $label
+     * @param string      $class
+     * @param string|null $url
+     * @param string|null $aclResource
+     * @param array       $params
      */
-    protected function initDataSource($dataSourceName, $dataProviderClass, $dataProviderName, $submitUrl)
-    {
-        $dataSourceNode = $this->root->addChild('dataSource');
-        $dataSourceNode->addAttribute('name', $dataSourceName);
-
-        $this->assignArguments($dataSourceNode, [
-            'data' => ['js_config' => ['component' => 'Magento_Ui/js/form/provider']]
-        ]);
-
-        $settingsNode = $dataSourceNode->addChild('settings');
-        $submitUrlNode = $settingsNode->addChild('submitUrl');
-        $submitUrlNode->addAttribute('path', $submitUrl);
-
-        $dataProviderNode = $dataSourceNode->addChild('dataProvider');
-        $dataProviderNode->addAttribute('class', $dataProviderClass);
-        $dataProviderNode->addAttribute('name', $dataProviderName);
-
-        $dataProviderSettingsNode = $dataProviderNode->addChild('settings');
-        $dataProviderSettingsNode->addChild('requestFieldName', 'id');
-        $dataProviderSettingsNode->addChild('primaryFieldName', 'id');
-    }
-
-    public function addButton($name, $label, $class, $url = null, $aclResource = null, $params = [])
-    {
-        $settingsNode = $this->root->xpath('/form/settings')[0];
-
-        $buttonsNodes = $settingsNode->xpath('buttons');
-        $buttonsNode = empty($buttonsNodes)
-            ? $settingsNode->addChild('buttons')
-            : $buttonsNodes[0];
-
+    public function addButton(
+        $name,
+        $label,
+        $class,
+        $url = null,
+        $aclResource = null,
+        $params = []
+    ) {
+        $buttonsNode = $this->root->xpath('/form/settings/buttons')[0];
         $buttonNode = $buttonsNode->addChild('button');
-        $buttonNode->addAttribute('name', $name);
-        $buttonNode->addChild('label', $label);
-        $buttonNode->addChild('class', $class);
+        $this->assignDataToNode($buttonNode, [
+            '@name'  => $name,
+            '@class' => $class,
+            'label'  => ['@translate' => 'true', $label]
+        ]);
         if ($url !== null) {
             $urlNode = $buttonNode->addChild('url');
             $urlNode->addAttribute('path', $url);
@@ -111,23 +118,25 @@ class UiFormGenerator extends AbstractXmlConfig
         if ($aclResource !== null) {
             $buttonNode->addChild('aclResource', $aclResource);
         }
-
         $this->assignArguments($buttonNode, $params, 'param');
     }
 
     /**
-     * @param string      $name
-     * @param string|null $label
+     * @param string $name
+     * @param string $label
+     * @param bool   $collapsible
      * @return SimpleXMLElement
      */
-    public function addFieldset($name, $label = null)
+    public function addFieldset($name, $label, $collapsible = false)
     {
         $fieldsetNode = $this->root->addChild('fieldset');
-        $fieldsetNode->addAttribute('name', $name);
-
-        $settingsNode = $fieldsetNode->addChild('settings');
-        $settingsNode->addChild('label', $label);
-
+        $this->assignDataToNode($fieldsetNode, [
+            '@name'    => $name,
+            'settings' => [
+                'label'       => ['@translate' => true, $label],
+                'collapsible' => $collapsible ? 'true' : 'false'
+            ]
+        ]);
         return $fieldsetNode;
     }
 
@@ -139,22 +148,19 @@ class UiFormGenerator extends AbstractXmlConfig
      * @param array            $arguments
      * @return SimpleXMLElement
      */
-    public function addField($fieldsetNode, $name, $formElement, $settings = [], $arguments = [])
-    {
+    public function addField(
+        SimpleXMLElement $fieldsetNode,
+        $name,
+        $formElement,
+        array $settings = [],
+        array $arguments = []
+    ) {
         $fieldNode = $fieldsetNode->addChild('field');
-        $fieldNode->addAttribute('name', $name);
-        $fieldNode->addAttribute('formElement', $formElement);
-
         $this->assignArguments($fieldNode, $arguments);
-
-        $settingsNode = $fieldNode->addChild('settings');
-        foreach ($settings as $nodeName => $value) {
-            $settingNode = $settingsNode->addChild($nodeName, is_array($value) ? null : $value);
-            if (is_array($value)) {
-                foreach ($value as $k => $v) {
-                    $settingNode->addChild($k, $v);
-                }
-            }
-        }
+        $this->assignDataToNode($fieldNode, [
+            '@name'        => $name,
+            '@formElement' => $formElement,
+            'settings'     => $settings
+        ]);
     }
 }
