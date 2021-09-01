@@ -67,7 +67,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     protected function configure()
     {
         $this->setName('module-builder:create-adminhtml-ui');
-        $this->setDescription('Create a list page in admin panel');
+        $this->setDescription('Create list and edit pages of admin panel');
         $this->setDefinition(
             [
                 new InputArgument(
