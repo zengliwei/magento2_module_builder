@@ -590,7 +590,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                     [],
                     MethodGenerator::FLAG_PUBLIC,
                     sprintf(
-                        'return $this->save(%s, \'%s\', \'%s\');',
+                        'return $this->save(%s, \'%s\', \'%s\', \'%s\');',
                         'Model::class',
                         'Specified item does not exist.',
                         'Item saved successfully.',

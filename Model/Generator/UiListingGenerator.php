@@ -29,6 +29,7 @@ use Magento\Framework\Exception\LocalizedException;
 class UiListingGenerator extends XmlConfigGenerator
 {
     protected array $columnSettingsAttr = [
+        'sortOrder'   => 'int',
         'class'       => 'string',
         'component'   => 'string',
         'template'    => 'string',
@@ -145,14 +146,12 @@ class UiListingGenerator extends XmlConfigGenerator
                 '@name'            => $columnsName,
                 'settings'         => [],
                 'selectionsColumn' => [
-                    '@name'      => 'ids',
-                    '@sortOrder' => 0,
-                    'settings'   => ['indexField' => 'id']
+                    '@name'    => 'ids',
+                    'settings' => ['indexField' => 'id']
                 ],
                 'column'           => [
-                    '@name'      => 'id',
-                    '@sortOrder' => 0,
-                    'settings'   => [
+                    '@name'    => 'id',
+                    'settings' => [
                         'filter'  => 'textRange',
                         'label'   => ['@translate' => 'true', 'ID'],
                         'sorting' => 'asc'
@@ -181,19 +180,17 @@ class UiListingGenerator extends XmlConfigGenerator
     /**
      * @param string $name
      * @param array  $settings
-     * @param int    $sortOrder
      * @param array  $attributes
      * @throws LocalizedException
      */
     public function addColumn(
         $name,
         array $settings,
-        $sortOrder = 1,
         array $attributes = []
     ) {
         $columnsNode = $this->root->xpath('/listing/columns')[0];
         $columnNode = $columnsNode->addChild('column');
-        XmlGenerator::assignDataToNode($columnNode, ['@name' => $name, '@sortOrder' => $sortOrder]);
+        XmlGenerator::assignDataToNode($columnNode, ['@name' => $name]);
         $this->assignAttributes($columnNode, $attributes, $this->columnSettingsAttr);
         XmlGenerator::assignDataToNode($columnNode->addChild('settings'), $settings);
     }
