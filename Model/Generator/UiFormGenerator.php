@@ -35,15 +35,14 @@ class UiFormGenerator extends XmlConfigGenerator
     ) {
         $this->setRoot('form', 'urn:magento:module:Magento_Ui:etc/ui_configuration.xsd');
 
-        $dataSourceName = 'form_data_source';
-        $dataProviderName = 'form_data_provider';
-        $provider = "{$namespace}.{$dataSourceName}";
+        $dataProviderName = "{$namespace}_data_provider";
+        $provider = "{$namespace}.form_data_source";
         $sourceProvider = "{$namespace}.{$dataProviderName}";
 
         $this->assignArguments($this->root, [
             'data' => [
                 'js_config' => ['provider' => $provider],
-                'label'     => 'General Information',
+                'label'     => __('General Information'),
                 'template'  => 'templates/form/collapsible'
             ]
         ]);
@@ -56,16 +55,17 @@ class UiFormGenerator extends XmlConfigGenerator
                 'buttons'   => null
             ],
             'dataSource' => [
-                '@name'        => $dataSourceName,
+                '@name'        => 'form_data_source',
                 'argument'     => [
-                    'data' => [
+                    '@name'           => 'data',
+                    '@xmlns:xsi:type' => 'array',
+                    'item'            => [
+                        '@name'           => 'js_config',
                         '@xmlns:xsi:type' => 'array',
-                        'js_config'       => [
-                            '@xmlns:xsi:type' => 'array',
-                            'component'       => [
-                                '@xmlns:xsi:type' => 'string',
-                                'Magento_Ui/js/form/provider'
-                            ]
+                        'item'            => [
+                            '@name'           => 'component',
+                            '@xmlns:xsi:type' => 'string',
+                            'Magento_Ui/js/form/provider'
                         ]
                     ]
                 ],

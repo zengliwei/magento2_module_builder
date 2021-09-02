@@ -47,7 +47,7 @@ class UiListingGenerator extends XmlConfigGenerator
         $dataProviderName = "{$namespace}_data_provider";
         $columnsName = "{$namespace}_columns";
         $provider = "{$namespace}.listing_data_source";
-        $sourceProvider = "{$namespace}.listing_data_provider";
+        $sourceProvider = "{$namespace}.{$dataProviderName}";
         $editorProvider = "{$namespace}.{$namespace}.columns_editor";
 
         $this->assignArguments($this->root, [
@@ -58,6 +58,14 @@ class UiListingGenerator extends XmlConfigGenerator
 
         XmlGenerator::assignDataToNode($this->root, [
             'settings'       => [
+                'buttons' => [
+                    'button' => [
+                        '@name' => 'add',
+                        'label' => ['@translate' => 'true', 'Add New Item'],
+                        'class' => 'primary',
+                        'url'   => ['@path' => '*/*/new']
+                    ]
+                ],
                 'spinner' => $columnsName,
                 'deps'    => ['dep' => $sourceProvider]
             ],

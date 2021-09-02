@@ -20,11 +20,11 @@ namespace CrazyCat\ModuleBuilder\Console\Command;
 
 use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\LayoutGenerator;
+use CrazyCat\ModuleBuilder\Model\Generator\Php\ClassGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiFormGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiListingGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\XmlConfigGenerator;
 use Exception;
-use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
@@ -214,7 +214,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             $collectionClass,
             $resourceModelClass
         );
-        $this->createFormDataProvider($modelDir, $formDataProviderClass, $collectionClass);
+        $this->createFormDataProvider($modelDir, $uiNamespace, $formDataProviderClass, $collectionClass);
 
         $this->createListingUiComponent($uiComponentDir, $uiNamespace, $aclResource, $uiListingActionPath);
         $this->createFormUiComponent($uiComponentDir, $uiNamespace, $formDataProviderClass, $uiFormSubmitUrl);
@@ -271,16 +271,18 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
      */
     private function createFormDataProvider(
         $modelDir,
+        $uiNamespace,
         $dataProviderClass,
         $collectionClass
     ) {
         $this->generateFile(
             $modelDir . 'DataProvider.php',
-            function () use ($dataProviderClass, $collectionClass) {
+            function () use ($dataProviderClass, $collectionClass, $uiNamespace) {
                 return (new ClassGenerator($dataProviderClass))
                     ->addUse('CrazyCat\Base\Model\AbstractDataProvider')
                     ->addUse($collectionClass)
                     ->setExtendedClass('CrazyCat\Base\Model\AbstractDataProvider')
+                    ->addProperty('persistKey', $uiNamespace, PropertyGenerator::FLAG_PROTECTED, 'string')
                     ->addMethod(
                         'init',
                         [],
