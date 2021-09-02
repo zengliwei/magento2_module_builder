@@ -28,6 +28,7 @@ use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\PropertyGenerator;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\App\Route\Config\Reader;
@@ -250,7 +251,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                     ->setExtendedClass($collectionClass)
                     ->setImplementedInterfaces(['Magento\Framework\Api\Search\SearchResultInterface'])
                     ->addTrait('AbstractCollection')
-                    ->addProperty('_eventPrefix', "{$uiNamespace}_grid_collection")
+                    ->addProperty('_eventPrefix', "{$uiNamespace}_grid_collection", PropertyGenerator::FLAG_PROTECTED)
                     ->addMethod(
                         '_construct',
                         [],

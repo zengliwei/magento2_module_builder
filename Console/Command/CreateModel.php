@@ -23,6 +23,7 @@ use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
+use Laminas\Code\Generator\PropertyGenerator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -93,6 +94,7 @@ class CreateModel extends AbstractCreateCommand
             return $output->writeln('<error>Invalid model path.</error>');
         }
         $path = str_replace('\\', '/', $modelPath);
+        $key = strtolower($module . '_' . str_replace('\\', '_', $modelPath));
 
         $modelClass = $vendor . '\\' . $module . '\\Model\\' . $modelPath;
         $resourceClass = $vendor . '\\' . $module . '\\Model\\ResourceModel\\' . $modelPath;
@@ -115,7 +117,8 @@ class CreateModel extends AbstractCreateCommand
             $dir . '/Model/ResourceModel/' . $path . '/Collection.php',
             $collectionClass,
             $modelClass,
-            $resourceClass
+            $resourceClass,
+            $key
         );
 
         $output->writeln('<info>Model created.</info>');
@@ -172,16 +175,20 @@ class CreateModel extends AbstractCreateCommand
      * @param string $class
      * @param string $modelClass
      * @param string $resourceClass
+     * @param string $key
      * @return ClassGenerator
      */
-    private function createCollection($filename, $class, $modelClass, $resourceClass)
+    private function createCollection($filename, $class, $modelClass, $resourceClass, $key)
     {
-        $this->generateFile($filename, function () use ($class, $modelClass, $resourceClass) {
+        $this->generateFile($filename, function () use ($class, $modelClass, $resourceClass, $key) {
             return (new ClassGenerator($class))
                 ->setExtendedClass('Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection')
                 ->addUse('Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection')
                 ->addUse($modelClass, 'Model')
                 ->addUse($resourceClass, 'ResourceModel')
+                ->addProperty('_idFieldName', 'id', PropertyGenerator::FLAG_PROTECTED)
+                ->addProperty('_eventPrefix', $key . '_collection', PropertyGenerator::FLAG_PROTECTED)
+                ->addProperty('_eventObject', 'collection', PropertyGenerator::FLAG_PROTECTED)
                 ->addMethod(
                     '_construct',
                     [],
