@@ -213,7 +213,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             $collectionClass,
             $resourceModelClass
         );
-        //$this->createFormDataProvider($modelDir, $formDataProviderClass, $collectionClass);
+        $this->createFormDataProvider($modelDir, $formDataProviderClass, $collectionClass);
 
         $this->createListingUiComponent($uiComponentDir, $uiNamespace, $aclResource, $uiListingActionPath);
         $this->createFormUiComponent($uiComponentDir, $uiNamespace, $formDataProviderClass, $uiFormSubmitUrl);
@@ -256,7 +256,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                     ->generate();
             }
         );
-        $this->addDataProviderDi($etcDir, $uiNamespace, $collectionClass);
+        $this->addListingDataProviderDi($etcDir, $uiNamespace, $collectionClass);
     }
 
     /**
@@ -282,13 +282,18 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                         MethodGenerator::FLAG_PROTECTED,
                         '$this->initCollection(Collection::class);',
                         (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
-                    )
-                    ->generate();
+                    );
             }
         );
     }
 
-    private function addDataProviderDi($etcDir, $uiNamespace, $dataProviderClass)
+    /**
+     * @param string $etcDir
+     * @param string $uiNamespace
+     * @param string $dataProviderClass
+     * @throws Exception
+     */
+    private function addListingDataProviderDi($etcDir, $uiNamespace, $dataProviderClass)
     {
         $dataProviderName = $uiNamespace . '_listing.listing_data_provider';
         $filename = $etcDir . 'di.xml';
