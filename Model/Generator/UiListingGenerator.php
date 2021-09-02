@@ -46,10 +46,9 @@ class UiListingGenerator extends XmlConfigGenerator
         $this->setRoot('listing', 'urn:magento:module:Magento_Ui:etc/ui_configuration.xsd');
 
         $dataProviderName = "{$namespace}_data_provider";
-        $columnsName = "{$namespace}_columns";
         $provider = "{$namespace}.listing_data_source";
         $sourceProvider = "{$namespace}.{$dataProviderName}";
-        $editorProvider = "{$namespace}.{$namespace}.columns_editor";
+        $editorProvider = "{$namespace}.{$namespace}.listing_columns_editor";
 
         $this->assignArguments($this->root, [
             'data' => [
@@ -67,7 +66,7 @@ class UiListingGenerator extends XmlConfigGenerator
                         'url'   => ['@path' => '*/*/new']
                     ]
                 ],
-                'spinner' => $columnsName,
+                'spinner' => 'listing_columns',
                 'deps'    => ['dep' => $sourceProvider]
             ],
             'dataSource'     => [
@@ -143,8 +142,78 @@ class UiListingGenerator extends XmlConfigGenerator
                 ]
             ],
             'columns'        => [
-                '@name'            => $columnsName,
-                'settings'         => [],
+                '@name'            => 'listing_columns',
+                'settings'         => [
+                    'childDefaults' => [
+                        'param' => [
+                            '@name'           => 'fieldAction',
+                            '@xmlns:xsi:type' => 'array',
+                            'item'            => [
+                                [
+                                    '@name'           => 'provider',
+                                    '@xmlns:xsi:type' => 'string',
+                                    $editorProvider
+                                ],
+                                [
+                                    '@name'           => 'target',
+                                    '@xmlns:xsi:type' => 'string',
+                                    'startEdit'
+                                ],
+                                [
+                                    '@name'           => 'params',
+                                    '@xmlns:xsi:type' => 'array',
+                                    'item'            => [
+                                        [
+                                            '@name'           => '0',
+                                            '@xmlns:xsi:type' => 'string',
+                                            '${ $.$data.rowIndex }'
+                                        ],
+                                        [
+                                            '@name'           => '1',
+                                            '@xmlns:xsi:type' => 'boolean',
+                                            'true'
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    'editorConfig'  => [
+                        'param' => [
+                            [
+                                '@name'           => 'clientConfig',
+                                '@xmlns:xsi:type' => 'array',
+                                'item'            => [
+                                    [
+                                        '@name'           => 'saveUrl',
+                                        '@xmlns:xsi:type' => 'url',
+                                        '@path'           => "{$actionPath}/massSave"
+                                    ],
+                                    [
+                                        '@name'           => 'validateBeforeSave',
+                                        '@xmlns:xsi:type' => 'boolean',
+                                        'false'
+                                    ]
+                                ]
+                            ],
+                            [
+                                '@name'           => 'indexField',
+                                '@xmlns:xsi:type' => 'string',
+                                'id'
+                            ],
+                            [
+                                '@name'           => 'enabled',
+                                '@xmlns:xsi:type' => 'boolean',
+                                'true'
+                            ],
+                            [
+                                '@name'           => 'selectProvider',
+                                '@xmlns:xsi:type' => 'string',
+                                "{$namespace}.{$namespace}.listing_columns.ids"
+                            ]
+                        ]
+                    ]
+                ],
                 'selectionsColumn' => [
                     '@name'    => 'ids',
                     'settings' => ['indexField' => 'id']
