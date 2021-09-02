@@ -172,9 +172,9 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         $layoutDir = $root . '/view/adminhtml/layout/';
         $uiComponentDir = $root . '/view/adminhtml/ui_component/';
 
-        $namespace = $vendor . '\\' . $module . '\\Controller\\' . $controllerPath;
+        $controllerNamespace = $vendor . '\\' . $module . '\\Controller\\Adminhtml\\' . $controllerPath;
         $modelClass = $vendor . '\\' . $module . '\\Model\\' . $modelPath;
-        $resourceModelClass = $vendor . '\\' . $module . '\\Model\\Resource\\' . $modelPath;
+        $resourceModelClass = $vendor . '\\' . $module . '\\Model\\ResourceModel\\' . $modelPath;
         $collectionClass = $resourceModelClass . '\\Collection';
         $formDataProviderClass = $modelClass . '\\DataProvider';
         $listingDataProviderClass = $resourceModelClass . '\\Grid\\Collection';
@@ -194,12 +194,12 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             'model_class' => $modelClass
         ];
 
-        $this->createIndexController($controllerDir, $namespace, $controllerInfo);
-        $this->createNewController($controllerDir, $namespace);
-        $this->createEditController($controllerDir, $namespace, $controllerInfo);
-        $this->createDeleteController($controllerDir, $namespace, $controllerInfo);
-        $this->createSaveController($controllerDir, $namespace, $controllerInfo);
-        $this->createMassSaveController($controllerDir, $namespace, $controllerInfo);
+        $this->createIndexController($controllerDir, $controllerNamespace, $controllerInfo);
+        $this->createNewController($controllerDir, $controllerNamespace);
+        $this->createEditController($controllerDir, $controllerNamespace, $controllerInfo);
+        $this->createDeleteController($controllerDir, $controllerNamespace, $controllerInfo);
+        $this->createSaveController($controllerDir, $controllerNamespace, $controllerInfo);
+        $this->createMassSaveController($controllerDir, $controllerNamespace, $controllerInfo);
 
         $this->createIndexLayout($layoutDir, $uiNamespace);
         $this->createNewLayout($layoutDir, $uiNamespace);
@@ -240,21 +240,24 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     ) {
         $this->generateFile(
             $resourceModelDir . 'Grid/Collection.php',
-            function () use ($dataProviderClass, $collectionClass, $resourceModelClass) {
+            function () use ($dataProviderClass, $collectionClass, $resourceModelClass, $uiNamespace) {
                 return (new ClassGenerator($dataProviderClass))
-                    ->addUse($collectionClass, 'ResourceCollection')
-                    ->addUse($resourceModelClass, 'ResourceModel')
+                    ->addUse('CrazyCat\Base\Model\ResourceModel\Grid\AbstractCollection')
                     ->addUse('Magento\Framework\Api\Search\SearchResultInterface')
                     ->addUse('Magento\Framework\View\Element\UiComponent\DataProvider\Document')
+                    ->addUse($collectionClass, 'ResourceCollection')
+                    ->addUse($resourceModelClass, 'ResourceModel')
                     ->setExtendedClass($collectionClass)
                     ->setImplementedInterfaces(['Magento\Framework\Api\Search\SearchResultInterface'])
+                    ->addTrait('AbstractCollection')
+                    ->addProperty('_eventPrefix', "{$uiNamespace}_grid_collection")
                     ->addMethod(
                         '_construct',
                         [],
                         MethodGenerator::FLAG_PROTECTED,
-                        '$this->_init(Document::class, ResourceModel::class);'
-                    )
-                    ->generate();
+                        '$this->_init(Document::class, ResourceModel::class);',
+                        (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
+                    );
             }
         );
         $this->addListingDataProviderDi($etcDir, $uiNamespace, $dataProviderClass);

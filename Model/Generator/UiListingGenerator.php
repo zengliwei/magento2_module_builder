@@ -147,7 +147,7 @@ class UiListingGenerator extends XmlConfigGenerator
                     'settings'   => [
                         'filter'  => 'textRange',
                         'label'   => ['@translate' => 'true', 'ID'],
-                        'sorting' => 'ASC'
+                        'sorting' => 'asc'
                     ]
                 ],
                 'actionsColumn'    => [
