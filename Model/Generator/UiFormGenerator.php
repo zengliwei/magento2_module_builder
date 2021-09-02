@@ -129,7 +129,7 @@ class UiFormGenerator extends XmlConfigGenerator
         XmlGenerator::assignDataToNode($fieldsetNode, [
             '@name'    => $name,
             'settings' => [
-                'label'       => ['@translate' => true, $label],
+                'label'       => ['@translate' => 'true', $label],
                 'collapsible' => $collapsible ? 'true' : 'false'
             ]
         ]);
