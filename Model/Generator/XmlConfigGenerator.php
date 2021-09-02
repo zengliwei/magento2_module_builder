@@ -94,6 +94,9 @@ class XmlConfigGenerator
         array $allowedAttributes
     ) {
         foreach ($attributes as $attribute => $value) {
+            if ($value === null) {
+                continue;
+            }
             if (!isset($allowedAttributes[$attribute])
                 || gettype($value) != $allowedAttributes[$attribute]
             ) {
@@ -101,7 +104,7 @@ class XmlConfigGenerator
                     __('Attribute %1 dose not match type %2.', $attribute, $allowedAttributes[$attribute])
                 );
             }
-            $node->addAttribute($attribute, $value);
+            $node->addAttribute($attribute, is_bool($value) ? ($value ? 'true' : 'false') : $value);
         }
     }
 

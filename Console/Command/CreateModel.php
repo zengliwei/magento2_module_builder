@@ -18,15 +18,16 @@
 
 namespace CrazyCat\ModuleBuilder\Console\Command;
 
+use CrazyCat\ModuleBuilder\Model\Generator\DbSchemaGenerator;
 use Exception;
 use Laminas\Code\Generator\ClassGenerator;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
+use Magento\Framework\Exception\LocalizedException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -38,7 +39,6 @@ class CreateModel extends AbstractCreateCommand
 {
     private const ARG_MAIN_TABLE = 'main-table';
     private const ARG_MODEL_PATH = 'model-path';
-    private const OPT_ID_FIELD = 'id-field';
 
     /**
      * @inheritdoc
@@ -66,13 +66,6 @@ class CreateModel extends AbstractCreateCommand
                         'Module name, use the cached one (%s) if not set',
                         $this->cache->getDataByKey('module_name')
                     )
-                ),
-                new InputOption(
-                    self::OPT_ID_FIELD,
-                    'i',
-                    InputOption::VALUE_REQUIRED,
-                    'ID field name',
-                    'id'
                 )
             ]
         );
@@ -84,7 +77,7 @@ class CreateModel extends AbstractCreateCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            [, $vendor, $module, $dir] = $this->getModuleInfo($input);
+            [, $vendor, $module, $root] = $this->getModuleInfo($input);
         } catch (Exception $e) {
             return $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
         }
@@ -100,21 +93,26 @@ class CreateModel extends AbstractCreateCommand
         $resourceClass = $vendor . '\\' . $module . '\\Model\\ResourceModel\\' . $modelPath;
         $collectionClass = $vendor . '\\' . $module . '\\Model\\ResourceModel\\' . $modelPath . '\\Collection';
 
+        $tableName = $input->getArgument(self::ARG_MAIN_TABLE);
+        $tableComment = str_replace('\\', ' ', $modelPath) . ' Table';
+        $indexPrefix = strtoupper($key);
+
+        $this->createDatabaseTable($tableName, $tableComment, $indexPrefix);
+
         $this->createResourceModel(
-            $dir . '/Model/ResourceModel/' . $path . '.php',
+            $root . '/Model/ResourceModel/' . $path . '.php',
             $resourceClass,
-            $input->getArgument(self::ARG_MAIN_TABLE),
-            $input->getOption(self::OPT_ID_FIELD)
+            $tableName
         );
 
         $this->createModel(
-            $dir . '/Model/' . $path . '.php',
+            $root . '/Model/' . $path . '.php',
             $modelClass,
             $resourceClass
         );
 
         $this->createCollection(
-            $dir . '/Model/ResourceModel/' . $path . '/Collection.php',
+            $root . '/Model/ResourceModel/' . $path . '/Collection.php',
             $collectionClass,
             $modelClass,
             $resourceClass,
@@ -125,15 +123,33 @@ class CreateModel extends AbstractCreateCommand
     }
 
     /**
+     * @param string $tableName
+     * @param string $tableComment
+     * @param string $indexPrefix
+     * @throws LocalizedException
+     */
+    private function createDatabaseTable($tableName, $tableComment, $indexPrefix)
+    {
+        $dbSchemaGenerator = new DbSchemaGenerator();
+        $tableNode = $dbSchemaGenerator->addTable($tableName, $tableComment);
+        $dbSchemaGenerator->addColumn($tableNode, 'id', 'int', 'ID', [
+            'identity' => true,
+            'unsigned' => true,
+            'nullable' => false
+        ]);
+        $dbSchemaGenerator->addPrimaryIndex($tableNode, $indexPrefix . '_ID', ['id']);
+        $dbSchemaGenerator->write($this->cache->getDataByKey('dir') . '/etc/db_schema.xml');
+    }
+
+    /**
      * @param string $filename
      * @param string $class
      * @param string $mainTable
-     * @param string $idFieldName
      * @return ClassGenerator
      */
-    private function createResourceModel($filename, $class, $mainTable, $idFieldName)
+    private function createResourceModel($filename, $class, $mainTable)
     {
-        $this->generateFile($filename, function () use ($class, $mainTable, $idFieldName) {
+        $this->generateFile($filename, function () use ($class, $mainTable) {
             return (new ClassGenerator($class))
                 ->setExtendedClass('Magento\Framework\Model\ResourceModel\Db\AbstractDb')
                 ->addUse('Magento\Framework\Model\ResourceModel\Db\AbstractDb')
@@ -141,7 +157,7 @@ class CreateModel extends AbstractCreateCommand
                     '_construct',
                     [],
                     MethodGenerator::FLAG_PROTECTED,
-                    '$this->_init(\'' . $mainTable . '\', \'' . $idFieldName . '\');',
+                    '$this->_init(\'' . $mainTable . '\', \'id\');',
                     (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
                 );
         });
