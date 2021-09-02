@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2020 Zengliwei
+ * Copyright (c) 2021 Zengliwei. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -29,7 +29,7 @@ use SimpleXMLElement;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-class XmlConfigGenerator extends XmlGenerator
+class XmlConfigGenerator
 {
     protected SimpleXMLElement $root;
 
@@ -59,7 +59,7 @@ class XmlConfigGenerator extends XmlGenerator
             if (!isset($arguments[$nodeName])) {
                 $arguments[$nodeName] = $argument;
             } else { // multiple nodes with same name in same level
-                if ($this->isAssocArray($arguments[$nodeName])) {
+                if (XmlGenerator::isAssocArray($arguments[$nodeName])) {
                     $arguments[$nodeName] = [$arguments[$nodeName]];
                 }
                 $arguments[$nodeName][] = $argument;
@@ -79,7 +79,7 @@ class XmlConfigGenerator extends XmlGenerator
         array $arguments,
         $nodeName = 'argument'
     ) {
-        $this->assignDataToNode($node, $this->toArgumentArray($arguments, $nodeName));
+        XmlGenerator::assignDataToNode($node, $this->toArgumentArray($arguments, $nodeName));
     }
 
     /**
@@ -138,10 +138,14 @@ class XmlConfigGenerator extends XmlGenerator
 
     /**
      * @param string $filename
+     * @param bool   $override
      * @return void
      */
-    public function write($filename)
+    public function write($filename, $override = false)
     {
+        if (is_file($filename) && !$override) {
+            return;
+        }
         $dir = dirname($filename);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);

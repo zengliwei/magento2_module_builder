@@ -1,6 +1,6 @@
 <?php
-/*
- * Copyright (c) 2020 Zengliwei
+/**
+ * Copyright (c) 2021 Zengliwei. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,6 +18,7 @@
 
 namespace CrazyCat\ModuleBuilder\Model\Generator;
 
+use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use Magento\Framework\Exception\LocalizedException;
 
 /**
@@ -56,7 +57,7 @@ class UiListingGenerator extends XmlConfigGenerator
             ]
         ]);
 
-        $this->assignDataToNode($this->root, [
+        XmlGenerator::assignDataToNode($this->root, [
             'settings'       => [
                 'spinner' => $columnsName,
                 'deps'    => ['dep' => $sourceProvider]
@@ -185,8 +186,8 @@ class UiListingGenerator extends XmlConfigGenerator
     ) {
         $columnsNode = $this->root->xpath('/listing/columns')[0];
         $columnNode = $columnsNode->addChild('column');
-        $this->assignDataToNode($columnNode, ['@name' => $name, '@sortOrder' => $sortOrder]);
+        XmlGenerator::assignDataToNode($columnNode, ['@name' => $name, '@sortOrder' => $sortOrder]);
         $this->assignAttributes($columnNode, $attributes, $this->columnSettingsAttr);
-        $this->assignDataToNode($columnNode->addChild('settings'), $settings);
+        XmlGenerator::assignDataToNode($columnNode->addChild('settings'), $settings);
     }
 }

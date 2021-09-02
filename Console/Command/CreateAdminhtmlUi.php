@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2020 Zengliwei
+ * Copyright (c) 2021 Zengliwei. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,6 +18,7 @@
 
 namespace CrazyCat\ModuleBuilder\Console\Command;
 
+use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\LayoutGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiFormGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiListingGenerator;
@@ -122,7 +123,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
 
         $configGenerator = new XmlConfigGenerator();
         $rootNode = $configGenerator->setRoot('config', 'urn:magento:framework:App/etc/routes.xsd');
-        $configGenerator->assignDataToNode($rootNode, [
+        XmlGenerator::assignDataToNode($rootNode, [
             'router' => [
                 '@id'   => 'admin',
                 'route' => [
@@ -165,12 +166,18 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         }
 
         $controllerDir = $root . '/Controller/Adminhtml/' . str_replace('\\', '/', $controllerPath) . '/';
-        $layoutDir = $root . '/view/adminhtml/layout';
-        $uiComponentDir = $root . '/view/adminhtml/ui_component';
+        $modelDir = $root . '/Model/' . str_replace('\\', '/', $modelPath) . '/';
+        $resourceModelDir = $root . '/Model/ResourceModel/' . str_replace('\\', '/', $modelPath) . '/';
+        $etcDir = $root . '/etc/';
+        $layoutDir = $root . '/view/adminhtml/layout/';
+        $uiComponentDir = $root . '/view/adminhtml/ui_component/';
 
         $namespace = $vendor . '\\' . $module . '\\Controller\\' . $controllerPath;
         $modelClass = $vendor . '\\' . $module . '\\Model\\' . $modelPath;
-        $dataProviderClass = $modelClass . '\\DataProvider';
+        $resourceModelClass = $vendor . '\\' . $module . '\\Model\\Resource\\' . $modelPath;
+        $collectionClass = $resourceModelClass . '\\Collection';
+        $formDataProviderClass = $modelClass . '\\DataProvider';
+        $listingDataProviderClass = $resourceModelClass . '\\Grid\\Collection';
 
         $key = strtolower(str_replace('\\', '_', $controllerPath));
         $persistKey = strtolower($module . '_' . $key);
@@ -198,12 +205,135 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         $this->createNewLayout($layoutDir, $uiNamespace);
         $this->createEditLayout($layoutDir, $uiNamespace);
 
+        $this->createListingDataProvider(
+            $resourceModelDir,
+            $etcDir,
+            $uiNamespace,
+            $listingDataProviderClass,
+            $collectionClass,
+            $resourceModelClass
+        );
+        //$this->createFormDataProvider($modelDir, $formDataProviderClass, $collectionClass);
+
         $this->createListingUiComponent($uiComponentDir, $uiNamespace, $aclResource, $uiListingActionPath);
-        $this->createFormUiComponent($uiComponentDir, $uiNamespace, $dataProviderClass, $uiFormSubmitUrl);
+        $this->createFormUiComponent($uiComponentDir, $uiNamespace, $formDataProviderClass, $uiFormSubmitUrl);
 
         $output->writeln('<info>UI related files created.</info>');
     }
 
+    /**
+     * @param string $resourceModelDir
+     * @param string $etcDir
+     * @param string $uiNamespace
+     * @param string $dataProviderClass
+     * @param string $collectionClass
+     * @param string $resourceModelClass
+     */
+    private function createListingDataProvider(
+        $resourceModelDir,
+        $etcDir,
+        $uiNamespace,
+        $dataProviderClass,
+        $collectionClass,
+        $resourceModelClass
+    ) {
+        $this->generateFile(
+            $resourceModelDir . 'DataProvider.php',
+            function () use ($dataProviderClass, $collectionClass, $resourceModelClass) {
+                return (new ClassGenerator($dataProviderClass))
+                    ->addUse($collectionClass, 'ResourceCollection')
+                    ->addUse($resourceModelClass, 'ResourceModel')
+                    ->addUse('Magento\Framework\Api\Search\SearchResultInterface')
+                    ->addUse('Magento\Framework\View\Element\UiComponent\DataProvider\Document')
+                    ->setExtendedClass($collectionClass)
+                    ->setImplementedInterfaces(['Magento\Framework\Api\Search\SearchResultInterface'])
+                    ->addMethod(
+                        '_construct',
+                        [],
+                        MethodGenerator::FLAG_PROTECTED,
+                        '$this->_init(Document::class, ResourceModel::class);'
+                    )
+                    ->generate();
+            }
+        );
+        $this->addDataProviderDi($etcDir, $uiNamespace, $collectionClass);
+    }
+
+    /**
+     * @param string $modelDir
+     * @param string $dataProviderClass
+     * @param string $collectionClass
+     */
+    private function createFormDataProvider(
+        $modelDir,
+        $dataProviderClass,
+        $collectionClass
+    ) {
+        $this->generateFile(
+            $modelDir . 'DataProvider.php',
+            function () use ($dataProviderClass, $collectionClass) {
+                return (new ClassGenerator($dataProviderClass))
+                    ->addUse('CrazyCat\Base\Model\AbstractDataProvider')
+                    ->addUse($collectionClass)
+                    ->setExtendedClass('CrazyCat\Base\Model\AbstractDataProvider')
+                    ->addMethod(
+                        'init',
+                        [],
+                        MethodGenerator::FLAG_PROTECTED,
+                        '$this->initCollection(Collection::class);',
+                        (new DocBlockGenerator())->setTag((new GenericTag('inheritDoc')))
+                    )
+                    ->generate();
+            }
+        );
+    }
+
+    private function addDataProviderDi($etcDir, $uiNamespace, $dataProviderClass)
+    {
+        $dataProviderName = $uiNamespace . '_listing.listing_data_provider';
+        $filename = $etcDir . 'di.xml';
+        if (is_file($filename)) {
+            $root = simplexml_load_file($filename);
+        } else {
+            $configGenerator = new XmlConfigGenerator();
+            $root = $configGenerator->setRoot('config', 'urn:magento:framework:ObjectManager/etc/config.xsd');
+        }
+        $factoryClass = 'Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory';
+        $argumentNodes = $root->xpath(
+            '/config/type[@class="' . $factoryClass . '"]/arguments/argument[@name="collections"]'
+        );
+        if (empty($argumentNodes)) {
+            XmlGenerator::assignDataToNode($root, [
+                'type' => [
+                    '@name'     => $factoryClass,
+                    'arguments' => [
+                        'argument' => [
+                            '@name'           => 'collections',
+                            '@xmlns:xsi:type' => 'array',
+                            'item'            => [
+                                '@name'           => $dataProviderName,
+                                '@xmlns:xsi:type' => 'string',
+                                $dataProviderClass
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+        } else {
+            XmlGenerator::assignDataToNode($argumentNodes[0], [
+                'item' => ['@name' => $dataProviderName, '@xmlns:xsi:type' => 'string', $dataProviderClass]
+            ]);
+        }
+        $root->saveXML($filename);
+    }
+
+    /**
+     * @param string $dir
+     * @param string $namespace
+     * @param string $aclResource
+     * @param string $actionPath
+     * @throws LocalizedException
+     */
     private function createListingUiComponent($dir, $namespace, $aclResource, $actionPath)
     {
         $namespace .= '_listing';
@@ -222,9 +352,15 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                 ]
             ]
         ]);
-        $uiListingGenerator->write($dir . '/' . $namespace . '.xml');
+        $uiListingGenerator->write($dir . $namespace . '.xml');
     }
 
+    /**
+     * @param string $dir
+     * @param string $namespace
+     * @param string $dataProviderClass
+     * @param string $submitUrl
+     */
     private function createFormUiComponent($dir, $namespace, $dataProviderClass, $submitUrl)
     {
         $namespace .= '_form';
@@ -284,7 +420,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             ['data' => ['config' => ['source' => 'data']]]
         );
 
-        $uiFormGenerator->write($dir . '/' . $namespace . '.xml');
+        $uiFormGenerator->write($dir . $namespace . '.xml');
     }
 
     /**
@@ -297,7 +433,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         $layoutGenerator = new LayoutGenerator();
         $container = $layoutGenerator->referenceContainer('content');
         $layoutGenerator->addUiComponent($container, $key . '_listing');
-        $layoutGenerator->write($dir . '/' . $key . '_index.xml');
+        $layoutGenerator->write($dir . $key . '_index.xml');
     }
 
     /**
@@ -308,7 +444,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     {
         $layoutGenerator = new LayoutGenerator();
         $layoutGenerator->addUpdate($key . '_edit');
-        $layoutGenerator->write($dir . '/' . $key . '_new.xml');
+        $layoutGenerator->write($dir . $key . '_new.xml');
     }
 
     /**
@@ -322,7 +458,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         $layoutGenerator->addUpdate('editor');
         $container = $layoutGenerator->referenceContainer('content');
         $layoutGenerator->addUiComponent($container, $key . '_form');
-        $layoutGenerator->write($dir . '/' . $key . '_edit.xml');
+        $layoutGenerator->write($dir . $key . '_edit.xml');
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
-/*
- * Copyright (c) 2020 Zengliwei
+/**
+ * Copyright (c) 2021 Zengliwei. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,6 +18,7 @@
 
 namespace CrazyCat\ModuleBuilder\Model\Generator;
 
+use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use SimpleXMLElement;
 
 /**
@@ -47,7 +48,7 @@ class UiFormGenerator extends XmlConfigGenerator
             ]
         ]);
 
-        $this->assignDataToNode($this->root, [
+        XmlGenerator::assignDataToNode($this->root, [
             'settings'   => [
                 'dataScope' => 'data',
                 'namespace' => $namespace,
@@ -101,7 +102,7 @@ class UiFormGenerator extends XmlConfigGenerator
     ) {
         $buttonsNode = $this->root->xpath('/form/settings/buttons')[0];
         $buttonNode = $buttonsNode->addChild('button');
-        $this->assignDataToNode($buttonNode, [
+        XmlGenerator::assignDataToNode($buttonNode, [
             '@name'  => $name,
             '@class' => $class,
             'label'  => ['@translate' => 'true', $label]
@@ -125,7 +126,7 @@ class UiFormGenerator extends XmlConfigGenerator
     public function addFieldset($name, $label, $collapsible = false)
     {
         $fieldsetNode = $this->root->addChild('fieldset');
-        $this->assignDataToNode($fieldsetNode, [
+        XmlGenerator::assignDataToNode($fieldsetNode, [
             '@name'    => $name,
             'settings' => [
                 'label'       => ['@translate' => true, $label],
@@ -152,7 +153,7 @@ class UiFormGenerator extends XmlConfigGenerator
     ) {
         $fieldNode = $fieldsetNode->addChild('field');
         $this->assignArguments($fieldNode, $arguments);
-        $this->assignDataToNode($fieldNode, [
+        XmlGenerator::assignDataToNode($fieldNode, [
             '@name'        => $name,
             '@formElement' => $formElement,
             'settings'     => $settings
