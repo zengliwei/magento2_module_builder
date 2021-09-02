@@ -228,6 +228,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
      * @param string $dataProviderClass
      * @param string $collectionClass
      * @param string $resourceModelClass
+     * @throws Exception
      */
     private function createListingDataProvider(
         $resourceModelDir,
@@ -238,7 +239,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         $resourceModelClass
     ) {
         $this->generateFile(
-            $resourceModelDir . 'DataProvider.php',
+            $resourceModelDir . 'Grid/Collection.php',
             function () use ($dataProviderClass, $collectionClass, $resourceModelClass) {
                 return (new ClassGenerator($dataProviderClass))
                     ->addUse($collectionClass, 'ResourceCollection')
