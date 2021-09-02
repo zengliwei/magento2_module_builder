@@ -44,11 +44,10 @@ class UiListingGenerator extends XmlConfigGenerator
     ) {
         $this->setRoot('listing', 'urn:magento:module:Magento_Ui:etc/ui_configuration.xsd');
 
-        $dataSourceName = 'listing_data_source';
-        $dataProviderName = 'listing_data_provider';
+        $dataProviderName = "{$namespace}_data_provider";
         $columnsName = "{$namespace}_columns";
-        $provider = "{$namespace}.{$dataSourceName}";
-        $sourceProvider = "{$namespace}.{$dataProviderName}";
+        $provider = "{$namespace}.listing_data_source";
+        $sourceProvider = "{$namespace}.listing_data_provider";
         $editorProvider = "{$namespace}.{$namespace}.columns_editor";
 
         $this->assignArguments($this->root, [
@@ -63,7 +62,7 @@ class UiListingGenerator extends XmlConfigGenerator
                 'deps'    => ['dep' => $sourceProvider]
             ],
             'dataSource'     => [
-                '@name'        => $dataSourceName,
+                '@name'        => 'listing_data_source',
                 '@component'   => 'Magento_Ui/js/grid/provider',
                 'settings'     => [
                     'storageConfig' => [

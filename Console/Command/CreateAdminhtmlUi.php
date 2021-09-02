@@ -257,7 +257,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                     ->generate();
             }
         );
-        $this->addListingDataProviderDi($etcDir, $uiNamespace, $collectionClass);
+        $this->addListingDataProviderDi($etcDir, $uiNamespace, $dataProviderClass);
     }
 
     /**
@@ -296,7 +296,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
      */
     private function addListingDataProviderDi($etcDir, $uiNamespace, $dataProviderClass)
     {
-        $dataProviderName = $uiNamespace . '_listing.listing_data_provider';
+        $dataProviderName = $uiNamespace . '_listing_data_provider';
         $filename = $etcDir . 'di.xml';
         if (is_file($filename)) {
             $root = simplexml_load_file($filename);
