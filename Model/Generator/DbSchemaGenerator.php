@@ -16,6 +16,9 @@ use SimpleXMLElement;
  */
 class DbSchemaGenerator extends XmlConfigGenerator
 {
+    /**
+     * @var array
+     */
     private $tableAttr = [
         'name'      => 'string',
         'comment'   => 'string',
@@ -27,6 +30,9 @@ class DbSchemaGenerator extends XmlConfigGenerator
         'collation' => 'string'
     ];
 
+    /**
+     * @var array
+     */
     private $columnAttr = [
         'name'     => 'string',
         'comment'  => 'string',
@@ -40,12 +46,17 @@ class DbSchemaGenerator extends XmlConfigGenerator
         'disabled' => 'string'
     ];
 
+    /**
+     * Set root node on construct
+     */
     public function __construct()
     {
         $this->setRoot('schema', 'urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd');
     }
 
     /**
+     * Add table
+     *
      * Optional attributes:
      * - disabled (bool)
      * - onCreate (string)
@@ -75,6 +86,8 @@ class DbSchemaGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add column
+     *
      * Optional attributes:
      * - identity (bool) Is auto increment or not
      * - unsigned (bool)
@@ -106,6 +119,8 @@ class DbSchemaGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add primary index
+     *
      * @param SimpleXMLElement $tableNode
      * @param string           $name
      * @param array            $columnNames
@@ -123,6 +138,8 @@ class DbSchemaGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add BTree index
+     *
      * @param SimpleXMLElement $tableNode
      * @param string           $name
      * @param array            $columnNames
@@ -140,6 +157,8 @@ class DbSchemaGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add foreign key
+     *
      * @param SimpleXMLElement $tableNode
      * @param string           $name
      * @param string           $table

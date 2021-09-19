@@ -17,9 +17,20 @@ use Magento\Framework\Serialize\SerializerInterface;
  */
 class Cache extends DataObject
 {
-    private CacheInterface $cache;
-    private SerializerInterface $serializer;
+    /**
+     * @var CacheInterface
+     */
+    private $cache;
 
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
+     * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
+     */
     public function __construct(
         CacheInterface $cache,
         SerializerInterface $serializer
@@ -34,6 +45,9 @@ class Cache extends DataObject
         );
     }
 
+    /**
+     * Store cache data on destruct
+     */
     public function __destruct()
     {
         $this->cache->save(

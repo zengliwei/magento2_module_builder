@@ -12,9 +12,14 @@ namespace CrazyCat\ModuleBuilder\Model\Generator\Php;
  */
 class PropertyGenerator extends \Laminas\Code\Generator\PropertyGenerator
 {
-    protected ?string $type = null;
+    /**
+     * @var string|null
+     */
+    protected $type = null;
 
     /**
+     * Set type
+     *
      * @param string|null $type
      * @return PropertyGenerator
      */

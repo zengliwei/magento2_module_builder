@@ -18,9 +18,14 @@ use SimpleXMLElement;
  */
 class XmlConfigGenerator
 {
-    protected SimpleXMLElement $root;
+    /**
+     * @var SimpleXMLElement
+     */
+    protected $root;
 
     /**
+     * Transform source array to argument array
+     *
      * @param array  $source
      * @param string $nodeName
      * @return array
@@ -56,6 +61,8 @@ class XmlConfigGenerator
     }
 
     /**
+     * Assign arguments
+     *
      * @param SimpleXMLElement $node
      * @param array            $arguments
      * @param string           $nodeName
@@ -70,6 +77,8 @@ class XmlConfigGenerator
     }
 
     /**
+     * Assign attributes
+     *
      * @param SimpleXMLElement $node
      * @param array            $attributes
      * @param array            $allowedAttributes
@@ -96,6 +105,8 @@ class XmlConfigGenerator
     }
 
     /**
+     * Get root node
+     *
      * @return SimpleXMLElement
      */
     public function getRoot()
@@ -104,6 +115,10 @@ class XmlConfigGenerator
     }
 
     /**
+     * Set root
+     *
+     * @param string $rootName
+     * @param string $schemaLocation
      * @return SimpleXMLElement
      * @throws Exception
      */
@@ -119,6 +134,8 @@ class XmlConfigGenerator
     }
 
     /**
+     * Generate XML string
+     *
      * @return bool|string
      */
     public function generate()
@@ -127,6 +144,8 @@ class XmlConfigGenerator
     }
 
     /**
+     * Generate XML file
+     *
      * @param string $filename
      * @param bool   $override
      * @return void

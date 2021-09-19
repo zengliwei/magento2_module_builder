@@ -6,6 +6,14 @@
 
 namespace CrazyCat\ModuleBuilder\Console\Command;
 
+use CrazyCat\Base\Controller\Adminhtml\AbstractDeleteAction;
+use CrazyCat\Base\Controller\Adminhtml\AbstractEditAction;
+use CrazyCat\Base\Controller\Adminhtml\AbstractIndexAction;
+use CrazyCat\Base\Controller\Adminhtml\AbstractMassSaveAction;
+use CrazyCat\Base\Controller\Adminhtml\AbstractNewAction;
+use CrazyCat\Base\Controller\Adminhtml\AbstractSaveAction;
+use CrazyCat\Base\Model\AbstractDataProvider;
+use CrazyCat\Base\Model\ResourceModel\Grid\AbstractCollection;
 use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\LayoutGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\Php\ClassGenerator;
@@ -17,11 +25,15 @@ use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
+use Magento\Framework\Api\Search\SearchResultInterface;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\App\Route\Config\Reader;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory;
+use Magento\Framework\View\Element\UiComponent\DataProvider\Document;
+use Magento\Ui\Component\Control\SplitButton;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -122,7 +134,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         if ($route === null
             && ($route = $input->getOption(self::OPT_ROUTE_NAME)) === false
         ) {
-            throw new Exception('Route name of the module is not specified.');
+            throw new LocalizedException('Route name of the module is not specified.');
         }
 
         $configGenerator = new XmlConfigGenerator();
@@ -248,13 +260,13 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             $resourceModelDir . 'Grid/Collection.php',
             function () use ($dataProviderClass, $collectionClass, $resourceModelClass, $uiNamespace) {
                 return (new ClassGenerator($dataProviderClass))
-                    ->addUse('CrazyCat\Base\Model\ResourceModel\Grid\AbstractCollection')
-                    ->addUse('Magento\Framework\Api\Search\SearchResultInterface')
-                    ->addUse('Magento\Framework\View\Element\UiComponent\DataProvider\Document')
+                    ->addUse(AbstractCollection::class)
+                    ->addUse(SearchResultInterface::class)
+                    ->addUse(Document::class)
                     ->addUse($collectionClass, 'ResourceCollection')
                     ->addUse($resourceModelClass, 'ResourceModel')
                     ->setExtendedClass($collectionClass)
-                    ->setImplementedInterfaces(['Magento\Framework\Api\Search\SearchResultInterface'])
+                    ->setImplementedInterfaces([SearchResultInterface::class])
                     ->addTrait('AbstractCollection')
                     ->addProperty('_eventPrefix', "{$uiNamespace}_grid_collection", PropertyGenerator::FLAG_PROTECTED)
                     ->addMethod(
@@ -273,8 +285,10 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
      * Create form data provider
      *
      * @param string $modelDir
+     * @param string $uiNamespace
      * @param string $dataProviderClass
      * @param string $collectionClass
+     * @throws FileSystemException
      */
     private function createFormDataProvider(
         $modelDir,
@@ -286,9 +300,9 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             $modelDir . 'DataProvider.php',
             function () use ($dataProviderClass, $collectionClass, $uiNamespace) {
                 return (new ClassGenerator($dataProviderClass))
-                    ->addUse('CrazyCat\Base\Model\AbstractDataProvider')
+                    ->addUse(AbstractDataProvider::class)
                     ->addUse($collectionClass)
-                    ->setExtendedClass('CrazyCat\Base\Model\AbstractDataProvider')
+                    ->setExtendedClass(AbstractDataProvider::class)
                     ->addProperty('persistKey', $uiNamespace, PropertyGenerator::FLAG_PROTECTED, 'string')
                     ->addMethod(
                         'init',
@@ -319,7 +333,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             $configGenerator = new XmlConfigGenerator();
             $root = $configGenerator->setRoot('config', 'urn:magento:framework:ObjectManager/etc/config.xsd');
         }
-        $factoryClass = 'Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory';
+        $factoryClass = CollectionFactory::class;
         $argumentNodes = $root->xpath(
             '/config/type[@class="' . $factoryClass . '"]/arguments/argument[@name="collections"]'
         );
@@ -413,7 +427,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                         ]
                     ]
                 ],
-                'class_name'     => 'Magento\Ui\Component\Control\SplitButton',
+                'class_name'     => SplitButton::class,
                 'options'        => [
                     [
                         'id_hard'        => 'save_and_close',
@@ -505,8 +519,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     {
         $this->generateFile($dir . 'Index.php', function () use ($namespace, $info) {
             return (new ClassGenerator($namespace . '\Index'))
-                ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractIndexAction')
-                ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractIndexAction')
+                ->setExtendedClass(AbstractIndexAction::class)
+                ->addUse(AbstractIndexAction::class)
                 ->addMethod(
                     'execute',
                     [],
@@ -534,8 +548,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     {
         $this->generateFile($dir . 'NewAction.php', function () use ($namespace) {
             return (new ClassGenerator($namespace . '\NewAction'))
-                ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractNewAction')
-                ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractNewAction');
+                ->setExtendedClass(AbstractNewAction::class)
+                ->addUse(AbstractNewAction::class);
         });
     }
 
@@ -552,8 +566,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     {
         $this->generateFile($dir . 'Edit.php', function () use ($namespace, $info) {
             return (new ClassGenerator($namespace . '\Edit'))
-                ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractEditAction')
-                ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractEditAction')
+                ->setExtendedClass(AbstractEditAction::class)
+                ->addUse(AbstractEditAction::class)
                 ->addUse($info['model_class'], 'Model')
                 ->addMethod(
                     'execute',
@@ -585,8 +599,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     {
         $this->generateFile($dir . 'Delete.php', function () use ($namespace, $info) {
             return (new ClassGenerator($namespace . '\Delete'))
-                ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractDeleteAction')
-                ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractDeleteAction')
+                ->setExtendedClass(AbstractDeleteAction::class)
+                ->addUse(AbstractDeleteAction::class)
                 ->addUse($info['model_class'], 'Model')
                 ->addMethod(
                     'execute',
@@ -616,8 +630,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     {
         $this->generateFile($dir . 'Save.php', function () use ($namespace, $info) {
             return (new ClassGenerator($namespace . '\Save'))
-                ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractSaveAction')
-                ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractSaveAction')
+                ->setExtendedClass(AbstractSaveAction::class)
+                ->addUse(AbstractSaveAction::class)
                 ->addUse($info['model_class'], 'Model')
                 ->addMethod(
                     'execute',
@@ -648,8 +662,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     {
         $this->generateFile($dir . 'MassSave.php', function () use ($namespace, $info) {
             return (new ClassGenerator($namespace . '\MassSave'))
-                ->setExtendedClass('CrazyCat\Base\Controller\Adminhtml\AbstractMassSaveAction')
-                ->addUse('CrazyCat\Base\Controller\Adminhtml\AbstractMassSaveAction')
+                ->setExtendedClass(AbstractMassSaveAction::class)
+                ->addUse(AbstractMassSaveAction::class)
                 ->addUse($info['model_class'], 'Model')
                 ->addMethod(
                     'execute',

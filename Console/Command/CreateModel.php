@@ -13,7 +13,11 @@ use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Laminas\Code\Generator\PropertyGenerator;
+use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -137,13 +141,14 @@ class CreateModel extends AbstractCreateCommand
      * @param string $class
      * @param string $mainTable
      * @return ClassGenerator
+     * @throws FileSystemException
      */
     private function createResourceModel($filename, $class, $mainTable)
     {
         $this->generateFile($filename, function () use ($class, $mainTable) {
             return (new ClassGenerator($class))
-                ->setExtendedClass('Magento\Framework\Model\ResourceModel\Db\AbstractDb')
-                ->addUse('Magento\Framework\Model\ResourceModel\Db\AbstractDb')
+                ->setExtendedClass(AbstractDb::class)
+                ->addUse(AbstractDb::class)
                 ->addMethod(
                     '_construct',
                     [],
@@ -161,13 +166,14 @@ class CreateModel extends AbstractCreateCommand
      * @param string $class
      * @param string $resourceClass
      * @return ClassGenerator
+     * @throws FileSystemException
      */
     private function createModel($filename, $class, $resourceClass)
     {
         $this->generateFile($filename, function () use ($class, $resourceClass) {
             return (new ClassGenerator($class))
-                ->setExtendedClass('Magento\Framework\Model\AbstractModel')
-                ->addUse('Magento\Framework\Model\AbstractModel')
+                ->setExtendedClass(AbstractModel::class)
+                ->addUse(AbstractModel::class)
                 ->addUse($resourceClass, 'ResourceModel')
                 ->addMethod(
                     '_construct',
@@ -188,13 +194,14 @@ class CreateModel extends AbstractCreateCommand
      * @param string $resourceClass
      * @param string $key
      * @return ClassGenerator
+     * @throws FileSystemException
      */
     private function createCollection($filename, $class, $modelClass, $resourceClass, $key)
     {
         $this->generateFile($filename, function () use ($class, $modelClass, $resourceClass, $key) {
             return (new ClassGenerator($class))
-                ->setExtendedClass('Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection')
-                ->addUse('Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection')
+                ->setExtendedClass(AbstractCollection::class)
+                ->addUse(AbstractCollection::class)
                 ->addUse($modelClass, 'Model')
                 ->addUse($resourceClass, 'ResourceModel')
                 ->addProperty('_idFieldName', 'id', PropertyGenerator::FLAG_PROTECTED)

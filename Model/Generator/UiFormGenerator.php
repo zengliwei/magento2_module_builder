@@ -7,6 +7,7 @@
 namespace CrazyCat\ModuleBuilder\Model\Generator;
 
 use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
+use Exception;
 use SimpleXMLElement;
 
 /**
@@ -15,6 +16,12 @@ use SimpleXMLElement;
  */
 class UiFormGenerator extends XmlConfigGenerator
 {
+    /**
+     * @param string $namespace
+     * @param string $dataProviderClass
+     * @param string $submitUrl
+     * @throws Exception
+     */
     public function __construct(
         $namespace,
         $dataProviderClass,
@@ -72,6 +79,8 @@ class UiFormGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add button
+     *
      * @param string      $name
      * @param string      $label
      * @param string      $class
@@ -105,6 +114,8 @@ class UiFormGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add fieldset
+     *
      * @param string $name
      * @param string $label
      * @param bool   $collapsible
@@ -124,6 +135,8 @@ class UiFormGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add field
+     *
      * @param SimpleXMLElement $fieldsetNode
      * @param string           $name
      * @param string           $formElement

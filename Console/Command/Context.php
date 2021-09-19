@@ -34,6 +34,7 @@ class Context
     /**
      * @param Cache              $cache
      * @param ComponentRegistrar $componentRegistrar
+     * @param DriverInterface    $driver
      */
     public function __construct(
         Cache $cache,

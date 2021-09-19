@@ -8,10 +8,10 @@ namespace CrazyCat\ModuleBuilder\Console\Command;
 
 use Closure;
 use CrazyCat\ModuleBuilder\Model\Cache;
-use Exception;
 use Laminas\Code\Generator\FileGenerator;
 use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem\DriverInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -58,13 +58,13 @@ abstract class AbstractCreateCommand extends Command
      *
      * @param InputInterface $input
      * @return array
-     * @throws Exception
+     * @throws LocalizedException
      */
     protected function getModuleInfo(InputInterface $input)
     {
         $moduleName = $input->getArgument(self::ARG_MODULE_NAME) ?: $this->cache->getDataByKey('module_name');
         if (!($dir = $this->componentRegistrar->getPath(ComponentRegistrar::MODULE, $moduleName))) {
-            throw new Exception('Module does not exists.');
+            throw new LocalizedException('Module does not exists.');
         }
 
         if ($moduleName != $this->cache->getData('module_name')) {
@@ -98,7 +98,7 @@ abstract class AbstractCreateCommand extends Command
             return;
         }
 
-        $dir = dirname($filename);
+        $dir = $this->filesystemDriver->getParentDirectory($filename);
         if (!$this->filesystemDriver->isDirectory($dir)) {
             $this->filesystemDriver->createDirectory($dir, 0755);
         }

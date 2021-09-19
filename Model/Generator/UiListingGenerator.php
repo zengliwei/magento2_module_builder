@@ -6,8 +6,11 @@
 
 namespace CrazyCat\ModuleBuilder\Model\Generator;
 
+use CrazyCat\Base\Ui\Component\Listing\Column\Actions;
 use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
+use Exception;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider;
 
 /**
  * @author  Zengliwei <zengliwei@163.com>
@@ -15,7 +18,10 @@ use Magento\Framework\Exception\LocalizedException;
  */
 class UiListingGenerator extends XmlConfigGenerator
 {
-    protected array $columnSettingsAttr = [
+    /**
+     * @var array
+     */
+    protected $columnSettingsAttr = [
         'sortOrder'   => 'int',
         'class'       => 'string',
         'component'   => 'string',
@@ -25,6 +31,12 @@ class UiListingGenerator extends XmlConfigGenerator
         'displayArea' => 'string'
     ];
 
+    /**
+     * @param string $namespace
+     * @param string $aclResource
+     * @param string $actionPath
+     * @throws Exception
+     */
     public function __construct(
         $namespace,
         $aclResource,
@@ -73,7 +85,7 @@ class UiListingGenerator extends XmlConfigGenerator
                 ],
                 'aclResource'  => $aclResource,
                 'dataProvider' => [
-                    '@class'   => 'Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider',
+                    '@class'   => DataProvider::class,
                     '@name'    => $dataProviderName,
                     'settings' => [
                         'primaryFieldName' => 'id',
@@ -214,7 +226,7 @@ class UiListingGenerator extends XmlConfigGenerator
                     ]
                 ],
                 'actionsColumn'    => [
-                    '@class'     => 'CrazyCat\Base\Ui\Component\Listing\Column\Actions',
+                    '@class'     => Actions::class,
                     '@name'      => 'actions',
                     '@sortOrder' => 999,
                     'settings'   => [
@@ -234,6 +246,8 @@ class UiListingGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add column
+     *
      * @param string $name
      * @param array  $settings
      * @param array  $attributes

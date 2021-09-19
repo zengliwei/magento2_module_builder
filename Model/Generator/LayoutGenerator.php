@@ -15,9 +15,15 @@ use SimpleXMLElement;
  */
 class LayoutGenerator extends XmlConfigGenerator
 {
-    protected SimpleXMLElement $body;
+    /**
+     * @var SimpleXMLElement
+     */
+    protected $body;
 
-    protected array $blockAttr = [
+    /**
+     * @var array
+     */
+    protected $blockAttr = [
         'after'       => 'string',
         'before'      => 'string',
         'as'          => 'string',
@@ -31,7 +37,10 @@ class LayoutGenerator extends XmlConfigGenerator
         'template'    => 'string'
     ];
 
-    protected array $containerAttr = [
+    /**
+     * @var array
+     */
+    protected $containerAttr = [
         'after'     => 'string',
         'before'    => 'string',
         'as'        => 'string',
@@ -42,7 +51,10 @@ class LayoutGenerator extends XmlConfigGenerator
         'label'     => 'string'
     ];
 
-    protected array $uiComponentAttr = [
+    /**
+     * @var array
+     */
+    protected $uiComponentAttr = [
         'after'       => 'string',
         'before'      => 'string',
         'as'          => 'string',
@@ -55,14 +67,20 @@ class LayoutGenerator extends XmlConfigGenerator
         'component'   => 'string'
     ];
 
-    protected array $referenceBlockAttr = [
+    /**
+     * @var array
+     */
+    protected $referenceBlockAttr = [
         'display'  => 'bool',
         'remove'   => 'bool',
         'class'    => 'string',
         'template' => 'string'
     ];
 
-    protected array $referenceContainerAttr = [
+    /**
+     * @var array
+     */
+    protected $referenceContainerAttr = [
         'display'   => 'bool',
         'remove'    => 'bool',
         'htmlClass' => 'string',
@@ -71,12 +89,18 @@ class LayoutGenerator extends XmlConfigGenerator
         'label'     => 'string'
     ];
 
-    protected array $moveAttr = [
+    /**
+     * @var array
+     */
+    protected $moveAttr = [
         'after'  => 'string',
         'before' => 'string',
         'as'     => 'string'
     ];
 
+    /**
+     * Set root node on construct
+     */
     public function __construct()
     {
         $this->setRoot('page', 'urn:magento:framework:View/Layout/etc/page_configuration.xsd');
@@ -84,6 +108,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Set page layout
+     *
      * @param string $layout
      */
     public function setPageLayout($layout)
@@ -92,6 +118,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add update
+     *
      * @param string $handle
      */
     public function addUpdate($handle)
@@ -101,6 +129,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add block
+     *
      * @param SimpleXMLElement $parent
      * @param string           $class
      * @param string           $name
@@ -142,6 +172,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add container
+     *
      * @param SimpleXMLElement $parent
      * @param string           $name
      * @param array            $attributes
@@ -157,6 +189,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add UI component
+     *
      * @param SimpleXMLElement $parent
      * @param string           $name
      * @param array            $attributes
@@ -172,6 +206,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Add body attribute
+     *
      * @param string $name
      * @param array  $value
      * @return void
@@ -184,6 +220,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Reference block
+     *
      * @param string $name
      * @param array  $attributes
      * @return void
@@ -198,6 +236,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Reference container
+     *
      * @param string $name
      * @param array  $attributes
      * @return void
@@ -212,6 +252,8 @@ class LayoutGenerator extends XmlConfigGenerator
     }
 
     /**
+     * Move element
+     *
      * @param string $element
      * @param string $destination
      * @param array  $attributes
