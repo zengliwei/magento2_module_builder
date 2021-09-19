@@ -41,13 +41,14 @@ use SimpleXMLElement;
  *     ]
  * ]
  *
- * @package CrazyCat\ModuleBuilder
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
 class XmlGenerator
 {
     /**
+     * Is assoc array
+     *
      * @param array $array
      * @return bool
      */
@@ -62,6 +63,8 @@ class XmlGenerator
     }
 
     /**
+     * Assign data to node
+     *
      * @param SimpleXMLElement $node
      * @param array            $data
      * @return void
@@ -90,6 +93,8 @@ class XmlGenerator
     }
 
     /**
+     * Transform array to XML
+     *
      * @param array  $array
      * @param string $root
      * @return string

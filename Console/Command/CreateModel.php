@@ -19,7 +19,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * @package CrazyCat\ModuleBuilder
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
@@ -111,6 +110,8 @@ class CreateModel extends AbstractCreateCommand
     }
 
     /**
+     * Create database table
+     *
      * @param string $tableName
      * @param string $tableComment
      * @param string $indexPrefix
@@ -130,6 +131,8 @@ class CreateModel extends AbstractCreateCommand
     }
 
     /**
+     * Create resource model
+     *
      * @param string $filename
      * @param string $class
      * @param string $mainTable
@@ -152,6 +155,8 @@ class CreateModel extends AbstractCreateCommand
     }
 
     /**
+     * Create model
+     *
      * @param string $filename
      * @param string $class
      * @param string $resourceClass
@@ -175,6 +180,8 @@ class CreateModel extends AbstractCreateCommand
     }
 
     /**
+     * Create collection
+     *
      * @param string $filename
      * @param string $class
      * @param string $modelClass

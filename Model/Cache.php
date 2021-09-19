@@ -12,7 +12,6 @@ use Magento\Framework\DataObject;
 use Magento\Framework\Serialize\SerializerInterface;
 
 /**
- * @package CrazyCat\ModuleBuilder
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */

@@ -10,7 +10,6 @@ use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use SimpleXMLElement;
 
 /**
- * @package CrazyCat\ModuleBuilder
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */

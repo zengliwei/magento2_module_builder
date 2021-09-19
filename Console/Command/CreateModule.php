@@ -17,7 +17,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * @package CrazyCat\ModuleBuilder
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
@@ -29,8 +28,16 @@ class CreateModule extends AbstractCreateCommand
     private const OPT_PACKAGE_LICENSE = 'license';
     private const OPT_PACKAGE_VERSION = 'package-version';
 
-    private Filesystem $filesystem;
+    /**
+     * @var Filesystem
+     */
+    private $filesystem;
 
+    /**
+     * @param Filesystem  $filesystem
+     * @param Context     $context
+     * @param string|null $name
+     */
     public function __construct(
         Filesystem $filesystem,
         Context $context,
@@ -116,8 +123,8 @@ class CreateModule extends AbstractCreateCommand
         [$vendor, $module] = explode('_', $moduleName);
         $dir = $this->filesystem->getDirectoryWrite(DirectoryList::APP)->getAbsolutePath()
             . 'code/' . $vendor . '/' . $module;
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+        if (!$this->filesystemDriver->isDirectory($dir)) {
+            $this->filesystemDriver->createDirectory($dir, 0755);
         }
 
         $this->cache->addData(
@@ -144,6 +151,8 @@ class CreateModule extends AbstractCreateCommand
     }
 
     /**
+     * Create registration file
+     *
      * @return void
      */
     private function createRegistrationFile()
@@ -158,12 +167,14 @@ class CreateModule extends AbstractCreateCommand
         (new FileGenerator())
             ->setFilename($this->cache->getDataByKey('dir') . '/registration.php')
             ->setDocBlock((new DocBlockGenerator())->setLongDescription($copyright))
-            ->setUse('Magento\Framework\Component\ComponentRegistrar')
+            ->setUse(ComponentRegistrar::class)
             ->setBody("ComponentRegistrar::register(ComponentRegistrar::MODULE, '$moduleName', __DIR__);")
             ->write();
     }
 
     /**
+     * Create etc/module.xml
+     *
      * @return void
      */
     private function createModuleEtcFile()
@@ -180,13 +191,15 @@ class CreateModule extends AbstractCreateCommand
 XML;
 
         $dir = $this->cache->getDataByKey('dir') . '/etc';
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+        if (!$this->filesystemDriver->isDirectory($dir)) {
+            $this->filesystemDriver->createDirectory($dir, 0755);
         }
-        file_put_contents($dir . '/module.xml', $xmlStr);
+        $this->filesystemDriver->filePutContents($dir . '/module.xml', $xmlStr);
     }
 
     /**
+     * Create composer.json
+     *
      * @return void
      */
     private function createComposerFile()
@@ -209,7 +222,7 @@ XML;
             ]
         ];
 
-        file_put_contents(
+        $this->filesystemDriver->filePutContents(
             $this->cache->getDataByKey('dir') . '/composer.json',
             json_encode($data, JSON_PRETTY_PRINT)
         );

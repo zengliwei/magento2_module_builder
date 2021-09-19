@@ -11,12 +11,12 @@ use CrazyCat\ModuleBuilder\Model\Cache;
 use Exception;
 use Laminas\Code\Generator\FileGenerator;
 use Magento\Framework\Component\ComponentRegistrar;
-use Magento\Framework\Filesystem;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Filesystem\DriverInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 
 /**
- * @package CrazyCat\ModuleBuilder
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
@@ -24,19 +24,38 @@ abstract class AbstractCreateCommand extends Command
 {
     protected const ARG_MODULE_NAME = 'module-name';
 
-    protected Cache $cache;
-    protected ComponentRegistrar $componentRegistrar;
+    /**
+     * @var Cache
+     */
+    protected $cache;
 
+    /**
+     * @var ComponentRegistrar
+     */
+    protected $componentRegistrar;
+
+    /**
+     * @var DriverInterface
+     */
+    protected $filesystemDriver;
+
+    /**
+     * @param Context     $context
+     * @param string|null $name
+     */
     public function __construct(
         Context $context,
         string $name = null
     ) {
         $this->cache = $context->getCache();
         $this->componentRegistrar = $context->getComponentRegistrar();
+        $this->filesystemDriver = $context->getFilesystemDriver();
         parent::__construct($name);
     }
 
     /**
+     * Get module information
+     *
      * @param InputInterface $input
      * @return array
      * @throws Exception
@@ -66,19 +85,22 @@ abstract class AbstractCreateCommand extends Command
     }
 
     /**
-     * @param string $filename
+     * Generate file
+     *
+     * @param string  $filename
      * @param Closure $callback
      * @return void
+     * @throws FileSystemException
      */
     protected function generateFile($filename, $callback)
     {
-        if (is_file($filename)) {
+        if ($this->filesystemDriver->isFile($filename)) {
             return;
         }
 
         $dir = dirname($filename);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+        if (!$this->filesystemDriver->isDirectory($dir)) {
+            $this->filesystemDriver->createDirectory($dir, 0755);
         }
 
         (new FileGenerator())

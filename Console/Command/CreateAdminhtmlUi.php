@@ -20,6 +20,7 @@ use Laminas\Code\Generator\PropertyGenerator;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\App\Route\Config\Reader;
+use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -27,7 +28,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * @package CrazyCat\ModuleBuilder
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
@@ -37,9 +37,22 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     private const ARG_MODEL_PATH = 'model-path';
     private const OPT_ROUTE_NAME = 'route-name';
 
-    private AreaList $areaList;
-    private Reader $routeConfigReader;
+    /**
+     * @var AreaList
+     */
+    private $areaList;
 
+    /**
+     * @var Reader
+     */
+    private $routeConfigReader;
+
+    /**
+     * @param AreaList    $areaList
+     * @param Reader      $routeConfigReader
+     * @param Context     $context
+     * @param string|null $name
+     */
     public function __construct(
         AreaList $areaList,
         Reader $routeConfigReader,
@@ -89,6 +102,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Get route
+     *
      * @param InputInterface $input
      * @throws Exception
      */
@@ -211,6 +226,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create listing data provider
+     *
      * @param string $resourceModelDir
      * @param string $etcDir
      * @param string $uiNamespace
@@ -253,6 +270,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create form data provider
+     *
      * @param string $modelDir
      * @param string $dataProviderClass
      * @param string $collectionClass
@@ -283,6 +302,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Add listing data provider DI
+     *
      * @param string $etcDir
      * @param string $uiNamespace
      * @param string $dataProviderClass
@@ -292,7 +313,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     {
         $dataProviderName = $uiNamespace . '_listing_data_provider';
         $filename = $etcDir . 'di.xml';
-        if (is_file($filename)) {
+        if ($this->filesystemDriver->isFile($filename)) {
             $root = simplexml_load_file($filename);
         } else {
             $configGenerator = new XmlConfigGenerator();
@@ -328,6 +349,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create listing UI component
+     *
      * @param string $dir
      * @param string $namespace
      * @param string $aclResource
@@ -356,6 +379,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create form UI component
+     *
      * @param string $dir
      * @param string $namespace
      * @param string $dataProviderClass
@@ -424,6 +449,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create layout for index action
+     *
      * @param string $dir
      * @param string $key
      * @throws LocalizedException
@@ -437,6 +464,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create layout for new action
+     *
      * @param string $dir
      * @param string $key
      */
@@ -448,6 +477,8 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create layout for edit action
+     *
      * @param string $dir
      * @param string $key
      * @throws LocalizedException
@@ -462,10 +493,13 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create index controller
+     *
      * @param string $dir
      * @param string $namespace
      * @param array  $info
      * @return void
+     * @throws FileSystemException
      */
     private function createIndexController($dir, $namespace, $info)
     {
@@ -489,9 +523,12 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create new controller
+     *
      * @param string $dir
      * @param string $namespace
      * @return void
+     * @throws FileSystemException
      */
     private function createNewController($dir, $namespace)
     {
@@ -503,10 +540,13 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create edit controller
+     *
      * @param string $dir
      * @param string $namespace
      * @param array  $info
      * @return void
+     * @throws FileSystemException
      */
     private function createEditController($dir, $namespace, $info)
     {
@@ -533,10 +573,13 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create delete controller
+     *
      * @param string $dir
      * @param string $namespace
      * @param array  $info
      * @return void
+     * @throws FileSystemException
      */
     private function createDeleteController($dir, $namespace, $info)
     {
@@ -561,10 +604,13 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create save controller
+     *
      * @param string $dir
      * @param string $namespace
      * @param array  $info
      * @return void
+     * @throws FileSystemException
      */
     private function createSaveController($dir, $namespace, $info)
     {
@@ -590,10 +636,13 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
     }
 
     /**
+     * Create mass save controller
+     *
      * @param string $dir
      * @param string $namespace
      * @param array  $info
      * @return void
+     * @throws FileSystemException
      */
     private function createMassSaveController($dir, $namespace, $info)
     {
