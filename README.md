@@ -78,6 +78,7 @@ php bin/magento module-builder:create-adminhtml-ui [options] <controller-path> <
 ```
 
 This command is to create files related to backend listing and edit pages:
+
 - Controller files of these actions: index, new, edit, save, massSave, delete
 - Layout files of these actions: index, new, edit
 - UI component files of listing and edit form
