@@ -52,7 +52,7 @@ class XmlGenerator
      * @param array $array
      * @return bool
      */
-    public static function isAssocArray(array $array)
+    public function isAssocArray(array $array)
     {
         foreach (array_keys($array) as $k) {
             if (!is_numeric($k)) {
@@ -69,7 +69,7 @@ class XmlGenerator
      * @param array            $data
      * @return void
      */
-    public static function assignDataToNode(
+    public function assignDataToNode(
         SimpleXMLElement $node,
         array $data
     ) {
@@ -81,11 +81,11 @@ class XmlGenerator
             } elseif (is_scalar($value) || $value === null) {
                 $node->addChild($key, $value);
             } elseif (is_array($value)) {
-                if (self::isAssocArray($value)) {
-                    self::assignDataToNode($node->addChild($key, $value[0] ?? null), $value);
+                if ($this->isAssocArray($value)) {
+                    $this->assignDataToNode($node->addChild($key, $value[0] ?? null), $value);
                 } else {
                     foreach ($value as $info) {
-                        self::assignDataToNode($node->addChild($key, $info[0] ?? null), $info);
+                        $this->assignDataToNode($node->addChild($key, $info[0] ?? null), $info);
                     }
                 }
             }
@@ -99,10 +99,10 @@ class XmlGenerator
      * @param string $root
      * @return string
      */
-    public static function arrayToXml(array $array, $root = 'root')
+    public function arrayToXml(array $array, $root = 'root')
     {
         $root = new SimpleXMLElement("<$root/>");
-        self::assignDataToNode($root, $array);
+        $this->assignDataToNode($root, $array);
         return $root->asXML();
     }
 }

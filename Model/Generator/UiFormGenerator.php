@@ -6,7 +6,6 @@
 
 namespace CrazyCat\ModuleBuilder\Model\Generator;
 
-use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use Exception;
 use SimpleXMLElement;
 
@@ -41,7 +40,7 @@ class UiFormGenerator extends XmlConfigGenerator
             ]
         ]);
 
-        XmlGenerator::assignDataToNode($this->root, [
+        $this->getXmlGenerator()->assignDataToNode($this->root, [
             'settings'   => [
                 'dataScope' => 'data',
                 'namespace' => $namespace,
@@ -98,7 +97,7 @@ class UiFormGenerator extends XmlConfigGenerator
     ) {
         $buttonsNode = $this->root->xpath('/form/settings/buttons')[0];
         $buttonNode = $buttonsNode->addChild('button');
-        XmlGenerator::assignDataToNode($buttonNode, [
+        $this->getXmlGenerator()->assignDataToNode($buttonNode, [
             '@name'  => $name,
             '@class' => $class,
             'label'  => ['@translate' => 'true', $label]
@@ -124,7 +123,7 @@ class UiFormGenerator extends XmlConfigGenerator
     public function addFieldset($name, $label, $collapsible = false)
     {
         $fieldsetNode = $this->root->addChild('fieldset');
-        XmlGenerator::assignDataToNode($fieldsetNode, [
+        $this->getXmlGenerator()->assignDataToNode($fieldsetNode, [
             '@name'    => $name,
             'settings' => [
                 'label'       => ['@translate' => 'true', $label],
@@ -153,7 +152,7 @@ class UiFormGenerator extends XmlConfigGenerator
     ) {
         $fieldNode = $fieldsetNode->addChild('field');
         $this->assignArguments($fieldNode, $arguments);
-        XmlGenerator::assignDataToNode($fieldNode, [
+        $this->getXmlGenerator()->assignDataToNode($fieldNode, [
             '@name'        => $name,
             '@formElement' => $formElement,
             'settings'     => $settings

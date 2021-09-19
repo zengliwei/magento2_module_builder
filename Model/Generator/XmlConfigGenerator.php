@@ -8,7 +8,10 @@ namespace CrazyCat\ModuleBuilder\Model\Generator;
 
 use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use Exception;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Filesystem\DriverInterface;
 use Magento\Framework\Phrase;
 use SimpleXMLElement;
 
@@ -22,6 +25,64 @@ class XmlConfigGenerator
      * @var SimpleXMLElement
      */
     protected $root;
+
+    /**
+     * Returns parent directory's path
+     *
+     * @param string $path
+     * @return string
+     */
+    protected function dirName($path)
+    {
+        return ObjectManager::getInstance()->get(DriverInterface::class)->getParentDirectory($path);
+    }
+
+    /**
+     * Tells whether the filename is a regular directory
+     *
+     * @param string $path
+     * @return bool
+     * @throws FileSystemException
+     */
+    protected function isDir($path)
+    {
+        return ObjectManager::getInstance()->get(DriverInterface::class)->isDirectory($path);
+    }
+
+    /**
+     * Tells whether the filename is a regular file
+     *
+     * @param string $path
+     * @return bool
+     * @throws FileSystemException
+     */
+    protected function isFile($path)
+    {
+        return ObjectManager::getInstance()->get(DriverInterface::class)->isFile($path);
+    }
+
+    /**
+     * Create directory
+     *
+     * @param string $path
+     * @param int    $permissions
+     * @return bool
+     * @throws FileSystemException
+     */
+    protected function mkdir($path, $permissions = 0755)
+    {
+        return ObjectManager::getInstance()->get(DriverInterface::class)->createDirectory($path, $permissions);
+    }
+
+    /**
+     * Get XML generator
+     *
+     * @return XmlGenerator
+     */
+    protected function getXmlGenerator()
+    {
+        return ObjectManager::getInstance()->get(XmlGenerator::class);
+    }
 
     /**
      * Transform source array to argument array
@@ -51,7 +112,7 @@ class XmlConfigGenerator
             if (!isset($arguments[$nodeName])) {
                 $arguments[$nodeName] = $argument;
             } else { // multiple nodes with same name in same level
-                if (XmlGenerator::isAssocArray($arguments[$nodeName])) {
+                if ($this->getXmlGenerator()->isAssocArray($arguments[$nodeName])) {
                     $arguments[$nodeName] = [$arguments[$nodeName]];
                 }
                 $arguments[$nodeName][] = $argument;
@@ -73,7 +134,7 @@ class XmlConfigGenerator
         array $arguments,
         $nodeName = 'argument'
     ) {
-        XmlGenerator::assignDataToNode($node, $this->toArgumentArray($arguments, $nodeName));
+        $this->getXmlGenerator()->assignDataToNode($node, $this->toArgumentArray($arguments, $nodeName));
     }
 
     /**
@@ -149,15 +210,16 @@ class XmlConfigGenerator
      * @param string $filename
      * @param bool   $override
      * @return void
+     * @throws FileSystemException
      */
     public function write($filename, $override = false)
     {
-        if (is_file($filename) && !$override) {
+        if ($this->isFile($filename) && !$override) {
             return;
         }
-        $dir = dirname($filename);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+        $dir = $this->dirName($filename);
+        if (!$this->isDir($dir)) {
+            $this->mkdir($dir, 0755);
         }
         $this->root->saveXML($filename);
     }

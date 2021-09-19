@@ -55,7 +55,7 @@ class UiListingGenerator extends XmlConfigGenerator
             ]
         ]);
 
-        XmlGenerator::assignDataToNode($this->root, [
+        $this->getXmlGenerator()->assignDataToNode($this->root, [
             'settings'       => [
                 'buttons' => [
                     'button' => [
@@ -260,8 +260,8 @@ class UiListingGenerator extends XmlConfigGenerator
     ) {
         $columnsNode = $this->root->xpath('/listing/columns')[0];
         $columnNode = $columnsNode->addChild('column');
-        XmlGenerator::assignDataToNode($columnNode, ['@name' => $name]);
+        $this->getXmlGenerator()->assignDataToNode($columnNode, ['@name' => $name]);
         $this->assignAttributes($columnNode, $attributes, $this->columnSettingsAttr);
-        XmlGenerator::assignDataToNode($columnNode->addChild('settings'), $settings);
+        $this->getXmlGenerator()->assignDataToNode($columnNode->addChild('settings'), $settings);
     }
 }

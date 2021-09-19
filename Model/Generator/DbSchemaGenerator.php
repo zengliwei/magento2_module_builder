@@ -128,7 +128,7 @@ class DbSchemaGenerator extends XmlConfigGenerator
     public function addPrimaryIndex(SimpleXMLElement $tableNode, $name, array $columnNames)
     {
         $constraintNode = $tableNode->addChild('constraint');
-        XmlGenerator::assignDataToNode($constraintNode, [
+        $this->getXmlGenerator()->assignDataToNode($constraintNode, [
             '@xmlns:xsi:type' => 'primary',
             '@referenceId'    => $name,
             'column'          => array_map(function ($column) {
@@ -147,7 +147,7 @@ class DbSchemaGenerator extends XmlConfigGenerator
     public function addBtreeIndex(SimpleXMLElement $tableNode, $name, array $columnNames)
     {
         $constraintNode = $tableNode->addChild('index');
-        XmlGenerator::assignDataToNode($constraintNode, [
+        $this->getXmlGenerator()->assignDataToNode($constraintNode, [
             '@indexType'   => 'btree',
             '@referenceId' => $name,
             'column'       => array_map(function ($column) {
@@ -175,7 +175,7 @@ class DbSchemaGenerator extends XmlConfigGenerator
         $referenceColumn
     ) {
         $constraintNode = $tableNode->addChild('constraint');
-        XmlGenerator::assignDataToNode($constraintNode, [
+        $this->getXmlGenerator()->assignDataToNode($constraintNode, [
             '@xmlns:xsi:type'  => 'foreign',
             '@onDelete'        => 'CASCADE',
             '@referenceId'     => $name,
