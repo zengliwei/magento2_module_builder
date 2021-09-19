@@ -10,6 +10,7 @@ use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\FileGenerator;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Component\ComponentRegistrar;
+use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Filesystem;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -176,6 +177,7 @@ class CreateModule extends AbstractCreateCommand
      * Create etc/module.xml
      *
      * @return void
+     * @throws FileSystemException
      */
     private function createModuleEtcFile()
     {
@@ -201,6 +203,7 @@ XML;
      * Create composer.json
      *
      * @return void
+     * @throws FileSystemException
      */
     private function createComposerFile()
     {
