@@ -85,6 +85,28 @@ class XmlConfigGenerator
     }
 
     /**
+     * Get type of given variable
+     *
+     * @param mixed $var
+     * @return string
+     */
+    protected function getType($var)
+    {
+        if (is_bool($var)) {
+            return 'boolean';
+        }
+        if (is_numeric($var)) {
+            return 'number';
+        }
+        if (is_string($var) || $var === null) {
+            return 'string';
+        }
+        if (is_array($var)) {
+            return 'array';
+        }
+    }
+
+    /**
      * Transform source array to argument array
      *
      * @param array  $source
@@ -97,11 +119,13 @@ class XmlConfigGenerator
         foreach ($source as $key => $value) {
             $argument = [
                 '@name'           => $key,
-                '@xmlns:xsi:type' => ($value instanceof Phrase) ? 'string' : gettype($value)
+                '@xmlns:xsi:type' => ($value instanceof Phrase) ? 'string' : $this->getType($value)
             ];
 
             if (is_array($value)) {
-                $argument = array_merge($argument, $this->toArgumentArray($value, 'item'));
+                foreach ($this->toArgumentArray($value, 'item') as $k => $v) {
+                    $argument[$k] = $v;
+                }
             } elseif ($value instanceof Phrase) {
                 $argument['@translate'] = 'true';
                 $argument[0] = $value;
@@ -155,7 +179,7 @@ class XmlConfigGenerator
                 continue;
             }
             if (!isset($allowedAttributes[$attribute])
-                || gettype($value) != $allowedAttributes[$attribute]
+                || $this->getType($value) != $allowedAttributes[$attribute]
             ) {
                 throw new LocalizedException(
                     __('Attribute %1 dose not match type %2.', $attribute, $allowedAttributes[$attribute])
