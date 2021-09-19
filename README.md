@@ -38,17 +38,17 @@ Options list below:
 
 |Option|Short|Description|
 |---|---|---|
-|--author|-a|Author to show in copyright, composer.json etc. [default: "Anonymous"]|
-|--package-description|-p|Package description [default: "A Magento 2 module."]|
-|--package-version|-e|Package version [default: "1.0.0"]|
-|--license|-l|Package license|
+|`--author`|`-a`|Author to show in copyright, composer.json etc. [default: "Anonymous"]|
+|`--package-description`|`-p`|Package description [default: "A Magento 2 module."]|
+|`--package-version`|`-e`|Package version [default: "1.0.0"]|
+|`--license`|`-l`|Package license|
 
 Arguments list below:
 
 |Argument|Description|
 |---|---|
-|<module-name>|Module name, format is like Vendor_Module, uppercase every piece, case sensitive|
-|<package-name>|Name of composer package|
+|`<module-name>`|Module name, format is like Vendor_Module, uppercase every piece, case sensitive|
+|`<package-name>`|Name of composer package|
 
 ### Craete a new model
 
@@ -67,9 +67,9 @@ Arguments list below:
 
 |Argument|Description|
 |---|---|
-|<main-table>|Main table of the model|
-|<model-path>|Model path related to the Model folder, use backslash as separator.<br>For example, input `Menu\Item` for the Vendor_Module module is going to create `\Vendor\Module\Model\Menu\Item` class.|
-|<module-name>|Module name, format is like Vendor_Module, uppercase every piece, case sensitive.<br>This is optional, the last module name used with create-module command is as default.|
+|`<main-table>`|Main table of the model|
+|`<model-path>`|Model path related to the Model folder, use backslash as separator.<br>For example, input `Menu\Item` for the Vendor_Module module is going to create `\Vendor\Module\Model\Menu\Item` class.|
+|`<module-name>`|Module name, format is like Vendor_Module, uppercase every piece, case sensitive.<br>This is optional, the last module name used with create-module command is as default.|
 
 ### Create list and edit pages of admin panel
 
@@ -89,12 +89,12 @@ Options list below:
 
 |Option|Short|Description|
 |---|---|---|
-|--route-name|-r|Route name|
+|`--route-name`|`-r`|Route name|
 
 Arguments list below:
 
 |Argument|Description|
 |---|---|
-|<controller-path>|Controller path related to the Controller folder, use backslash as separator.<br>For example, input `Menu\Item` for the Vendor_Module module is going to create files under `\Vendor\Module\Controller\Menu\Item` namespace.|
-|<model-path>|Model path related to the Model folder, use backslash as separator|
-|<module-name>|Module name, format is like Vendor_Module, uppercase every piece, case sensitive.<br>This is optional, the last module name used with create-module command is as default.|
+|`<controller-path>`|Controller path related to the Controller folder, use backslash as separator.<br>For example, input `Menu\Item` for the Vendor_Module module is going to create files under `\Vendor\Module\Controller\Menu\Item` namespace.|
+|`<model-path>`|Model path related to the Model folder, use backslash as separator|
+|`<module-name>`|Module name, format is like Vendor_Module, uppercase every piece, case sensitive.<br>This is optional, the last module name used with create-module command is as default.|
