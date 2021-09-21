@@ -10,7 +10,7 @@ A Magento 2 module which used to build new modules
 3. Execute these commands to enable the modules:<br>
    `php bin/magento module:enable CrazyCat_Base`<br>
    `php bin/magento module:enable CrazyCat_ModuleBuilder`
-4. Execute this command to recompile and flush cache:<br>
+4. Execute these commands to recompile and flush cache:<br>
    `php bin/magento setup:di:compile`<br>
    `php bin/magento cache:flush`
 6. Execute this command to check whether the module is installed:<br>
