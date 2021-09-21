@@ -16,7 +16,7 @@ A Magento 2 module which used to build new modules
 6. Execute this command to check whether the module is installed:<br>
    `php bin/magento`
 
-Three more commands are added:
+Three console commands are added:
 
 |Command|Description|
 |---|---|
