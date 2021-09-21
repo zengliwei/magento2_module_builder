@@ -8,7 +8,7 @@ A Magento 2 module which used to build new modules
    `composer require CrazyCat_Base`
 2. Download and decompress this packet into this folder `[root]/app/code/CrazyCat`.
 3. Execute these commands to enable the modules:<br>
-   `php bin/magento module:enable CrazyCat_Base`
+   `php bin/magento module:enable CrazyCat_Base`<br>
    `php bin/magento module:enable CrazyCat_ModuleBuilder`
 4. Execute this command to recompile:<br>
    `php bin/magento setup:di:compile`
