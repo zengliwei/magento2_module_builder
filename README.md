@@ -4,12 +4,17 @@ A Magento 2 module which used to build new modules
 
 ## Install
 
-1. Download and decompress this packet into this folder `[root]/app/code/CrazyCat`.
-2. Execute this command to enable the module:<br>
+1. Execute this command to download the `CrazyCat_Base` module through composer:<br>
+   `composer require CrazyCat_Base`
+2. Download and decompress this packet into this folder `[root]/app/code/CrazyCat`.
+3. Execute these commands to enable the modules:<br>
+   `php bin/magento module:enable CrazyCat_Base`
    `php bin/magento module:enable CrazyCat_ModuleBuilder`
-3. Execute this command to recompile:<br>
+4. Execute this command to recompile:<br>
    `php bin/magento setup:di:compile`
-4. Execute this command to check whether the module is installed:<br>
+5. Execute this command to flush cache:<br>
+   `php bin/magento cache:flush`
+6. Execute this command to check whether the module is installed:<br>
    `php bin/magento`
 
 Three more commands are added:
