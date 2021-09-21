@@ -22,7 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @author  Zengliwei <zengliwei@163.com>
- * @url https://github.com/zengliwei/magento2_banner
+ * @url https://github.com/zengliwei/magento2_module_builder
  */
 class CreateApi extends Command
 {
