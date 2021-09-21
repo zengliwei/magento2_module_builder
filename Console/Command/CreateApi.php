@@ -6,12 +6,12 @@
 
 namespace CrazyCat\ModuleBuilder\Console\Command;
 
+use CrazyCat\ModuleBuilder\Model\Generator\Php\ClassGenerator;
+use CrazyCat\ModuleBuilder\Model\Generator\Php\InterfaceGenerator;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\FileGenerator;
-use Laminas\Code\Generator\InterfaceGenerator;
 use Laminas\Code\Generator\MethodGenerator;
 use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\Code\Generator\ClassGenerator;
 use Magento\Framework\DataObject;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\DriverInterface;
@@ -141,6 +141,9 @@ class CreateApi extends Command
         foreach ($fields as $field) {
             $tmp = str_replace(' ', '', ucwords(str_replace('_', ' ', $field)));
             $param = strtolower(substr($tmp, 0, 1)) . substr($tmp, 1);
+            $constField = 'FIELD_' . strtoupper($field);
+
+            $interface->addConstant($constField, $field);
 
             $interface->addMethod(
                 'get' . $tmp,
@@ -167,7 +170,7 @@ class CreateApi extends Command
                 'get' . $tmp,
                 [],
                 MethodGenerator::FLAG_PUBLIC,
-                'return $this->getDataByKey(\'' . $field . '\');',
+                'return $this->getDataByKey(self::' . $constField . ');',
                 '@inheritDoc'
             );
 
@@ -175,7 +178,7 @@ class CreateApi extends Command
                 'set' . $tmp,
                 [$param],
                 MethodGenerator::FLAG_PUBLIC,
-                'return $this->setData(\'' . $field . '\', $' . $param . ');',
+                'return $this->setData(self::' . $constField . ', $' . $param . ');',
                 '@inheritDoc'
             );
         }

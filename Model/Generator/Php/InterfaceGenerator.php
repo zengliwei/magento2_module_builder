@@ -10,7 +10,7 @@ namespace CrazyCat\ModuleBuilder\Model\Generator\Php;
  * @author  Zengliwei <zengliwei@163.com>
  * @url https://github.com/zengliwei/magento2_module_builder
  */
-class ClassGenerator extends \Laminas\Code\Generator\ClassGenerator
+class InterfaceGenerator extends \Laminas\Code\Generator\InterfaceGenerator
 {
     use ClassMethods;
 }
