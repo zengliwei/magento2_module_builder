@@ -74,7 +74,7 @@ class CreateModel extends AbstractCreateCommand
         }
 
         $modelPath = $input->getArgument(self::ARG_MODEL_PATH);
-        if (!preg_match('/[A-Z][a-z]+(\\[A-Z][a-z]+)*/', $modelPath)) {
+        if (!preg_match('/^[A-Z][a-zA-Z]*(\\\\[A-Z][a-zA-Z]*)*$/', $modelPath)) {
             return $output->writeln('<error>Invalid model path.</error>');
         }
         $path = str_replace('\\', '/', $modelPath);

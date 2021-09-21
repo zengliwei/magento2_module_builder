@@ -17,6 +17,9 @@
                 <item name="create_adminhtml_ui" xsi:type="object">
                     CrazyCat\ModuleBuilder\Console\Command\CreateAdminhtmlUi
                 </item>
+                <item name="create_api" xsi:type="object">
+                    CrazyCat\ModuleBuilder\Console\Command\CreateApi
+                </item>
             </argument>
         </arguments>
     </type>

@@ -166,12 +166,12 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
         }
 
         $controllerPath = $input->getArgument(self::ARG_CONTROLLER_PATH);
-        if (!preg_match('/[A-Z][a-z]+(\\[A-Z][a-z]+)*/', $controllerPath)) {
+        if (!preg_match('/^[A-Z][a-zA-Z]*(\\\\[A-Z][a-zA-Z]*)*$/', $controllerPath)) {
             return $output->writeln('<error>Invalid controller path.</error>');
         }
 
         $modelPath = $input->getArgument(self::ARG_MODEL_PATH);
-        if (!preg_match('/[A-Z][a-z]+(\\[A-Z][a-z]+)*/', $modelPath)) {
+        if (!preg_match('/^[A-Z][a-zA-Z]*(\\\\[A-Z][a-zA-Z]*)*$/', $modelPath)) {
             return $output->writeln('<error>Invalid model path.</error>');
         }
 
