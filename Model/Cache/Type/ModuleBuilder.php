@@ -18,12 +18,12 @@ class ModuleBuilder extends TagScope
     /**
      * Cache type code unique among all cache types
      */
-    public const TYPE_IDENTIFIER = 'module-builder';
+    public const TYPE_IDENTIFIER = 'module_builder';
 
     /**
      * Cache tag used to distinguish the cache type from all other caches
      */
-    public const CACHE_TAG = 'module-builder';
+    public const CACHE_TAG = 'MODULE_BUILDER';
 
     /**
      * @param FrontendPool $cacheFrontendPool

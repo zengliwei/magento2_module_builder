@@ -7,11 +7,13 @@
 namespace CrazyCat\ModuleBuilder\Console\Command;
 
 use Closure;
+use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use CrazyCat\ModuleBuilder\Model\Cache;
 use Laminas\Code\Generator\FileGenerator;
 use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\DriverInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,9 +37,19 @@ abstract class AbstractCreateCommand extends Command
     protected $componentRegistrar;
 
     /**
+     * @var Filesystem
+     */
+    protected $filesystem;
+
+    /**
      * @var DriverInterface
      */
     protected $filesystemDriver;
+
+    /**
+     * @var XmlGenerator
+     */
+    protected $xmlGenerator;
 
     /**
      * @param Context     $context
@@ -49,7 +61,9 @@ abstract class AbstractCreateCommand extends Command
     ) {
         $this->cache = $context->getCache();
         $this->componentRegistrar = $context->getComponentRegistrar();
+        $this->filesystem = $context->getFilesystem();
         $this->filesystemDriver = $context->getFilesystemDriver();
+        $this->xmlGenerator = $context->getXmlGenerator();
         parent::__construct($name);
     }
 
@@ -63,7 +77,9 @@ abstract class AbstractCreateCommand extends Command
     protected function getModuleInfo(InputInterface $input)
     {
         $moduleName = $input->getArgument(self::ARG_MODULE_NAME) ?: $this->cache->getDataByKey('module_name');
-        if (!($dir = $this->componentRegistrar->getPath(ComponentRegistrar::MODULE, $moduleName))) {
+        $dir = $this->componentRegistrar->getPath(ComponentRegistrar::MODULE, $moduleName);
+
+        if (!($dir)) {
             throw new LocalizedException('Module does not exists.');
         }
 
@@ -73,7 +89,8 @@ abstract class AbstractCreateCommand extends Command
                 [
                     'module_name' => $moduleName,
                     'vendor'      => $vendor,
-                    'module'      => $module
+                    'module'      => $module,
+                    'dir'         => $dir
                 ]
             );
         } else {

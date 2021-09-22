@@ -7,7 +7,6 @@
 namespace CrazyCat\ModuleBuilder\Model;
 
 use CrazyCat\ModuleBuilder\Model\Cache\Type\ModuleBuilder;
-use Magento\Framework\App\CacheInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Serialize\SerializerInterface;
 
@@ -18,9 +17,14 @@ use Magento\Framework\Serialize\SerializerInterface;
 class Cache extends DataObject
 {
     /**
-     * @var CacheInterface
+     * @var ModuleBuilder
      */
     private $cache;
+
+    /**
+     * @var ModuleBuilder
+     */
+    private $cacheKey = 'module_builder_cli';
 
     /**
      * @var SerializerInterface
@@ -28,18 +32,18 @@ class Cache extends DataObject
     private $serializer;
 
     /**
-     * @param CacheInterface $cache
+     * @param ModuleBuilder       $cache
      * @param SerializerInterface $serializer
      */
     public function __construct(
-        CacheInterface $cache,
+        ModuleBuilder $cache,
         SerializerInterface $serializer
     ) {
         $this->cache = $cache;
         $this->serializer = $serializer;
 
         parent::__construct(
-            ($plain = $this->cache->load(ModuleBuilder::TYPE_IDENTIFIER))
+            ($plain = $this->cache->load($this->cacheKey))
                 ? $this->serializer->unserialize($plain)
                 : []
         );
@@ -52,8 +56,7 @@ class Cache extends DataObject
     {
         $this->cache->save(
             $this->serializer->serialize($this->getData()),
-            ModuleBuilder::TYPE_IDENTIFIER,
-            [ModuleBuilder::CACHE_TAG]
+            $this->cacheKey
         );
     }
 }

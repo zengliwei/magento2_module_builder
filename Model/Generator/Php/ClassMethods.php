@@ -7,7 +7,6 @@
 namespace CrazyCat\ModuleBuilder\Model\Generator\Php;
 
 use Laminas\Code\Generator\Exception\InvalidArgumentException;
-use Laminas\Code\Generator\PropertyGenerator;
 use Laminas\Code\Generator\PropertyValueGenerator;
 
 trait ClassMethods

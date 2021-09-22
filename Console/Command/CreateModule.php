@@ -11,7 +11,6 @@ use Laminas\Code\Generator\FileGenerator;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Exception\FileSystemException;
-use Magento\Framework\Filesystem;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -28,25 +27,6 @@ class CreateModule extends AbstractCreateCommand
     private const OPT_PACKAGE_DESC = 'package-description';
     private const OPT_PACKAGE_LICENSE = 'license';
     private const OPT_PACKAGE_VERSION = 'package-version';
-
-    /**
-     * @var Filesystem
-     */
-    private $filesystem;
-
-    /**
-     * @param Filesystem  $filesystem
-     * @param Context     $context
-     * @param string|null $name
-     */
-    public function __construct(
-        Filesystem $filesystem,
-        Context $context,
-        string $name = null
-    ) {
-        $this->filesystem = $filesystem;
-        parent::__construct($context, $name);
-    }
 
     /**
      * @inheritdoc

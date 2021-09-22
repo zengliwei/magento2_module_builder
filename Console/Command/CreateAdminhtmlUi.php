@@ -14,9 +14,9 @@ use CrazyCat\Base\Controller\Adminhtml\AbstractNewAction;
 use CrazyCat\Base\Controller\Adminhtml\AbstractSaveAction;
 use CrazyCat\Base\Model\AbstractDataProvider;
 use CrazyCat\Base\Model\ResourceModel\Grid\AbstractCollection;
-use CrazyCat\ModuleBuilder\Helper\XmlGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\LayoutGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\Php\ClassGenerator;
+use CrazyCat\ModuleBuilder\Model\Generator\Php\PropertyGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiFormGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\UiListingGenerator;
 use CrazyCat\ModuleBuilder\Model\Generator\XmlConfigGenerator;
@@ -24,7 +24,6 @@ use Exception;
 use Laminas\Code\Generator\DocBlock\Tag\GenericTag;
 use Laminas\Code\Generator\DocBlockGenerator;
 use Laminas\Code\Generator\MethodGenerator;
-use Laminas\Code\Generator\PropertyGenerator;
 use Magento\Framework\Api\Search\SearchResultInterface;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
@@ -139,7 +138,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
 
         $configGenerator = new XmlConfigGenerator();
         $rootNode = $configGenerator->setRoot('config', 'urn:magento:framework:App/etc/routes.xsd');
-        XmlGenerator::assignDataToNode($rootNode, [
+        $this->xmlGenerator->assignDataToNode($rootNode, [
             'router' => [
                 '@id'   => 'admin',
                 'route' => [
@@ -338,7 +337,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
             '/config/type[@class="' . $factoryClass . '"]/arguments/argument[@name="collections"]'
         );
         if (empty($argumentNodes)) {
-            XmlGenerator::assignDataToNode($root, [
+            $this->xmlGenerator->assignDataToNode($root, [
                 'type' => [
                     '@name'     => $factoryClass,
                     'arguments' => [
@@ -355,7 +354,7 @@ class CreateAdminhtmlUi extends AbstractCreateCommand
                 ]
             ]);
         } else {
-            XmlGenerator::assignDataToNode($argumentNodes[0], [
+            $this->xmlGenerator->assignDataToNode($argumentNodes[0], [
                 'item' => ['@name' => $dataProviderName, '@xmlns:xsi:type' => 'string', $dataProviderClass]
             ]);
         }
