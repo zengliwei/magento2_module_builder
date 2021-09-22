@@ -32,7 +32,7 @@ Three console commands are added:
 php bin/magento module-builder:create-module [options] <module-name> <package-name>
 ```
 
-This command is to create a new module with these files:
+This command is used to create a new module with these files:
 
 - etc/module.xml
 - composer.json
@@ -60,7 +60,7 @@ Arguments list below:
 php bin/magento module-builder:create-model <model-path> <main-table> [<module-name>]
 ```
 
-This command is to create related files of model:
+This command is used to create related files of model:
 
 - etc/db_schema.xml
 - model
@@ -81,7 +81,7 @@ Arguments list below:
 php bin/magento module-builder:create-adminhtml-ui [options] <controller-path> <model-path> [<module-name>]
 ```
 
-This command is to create files related to backend listing and edit pages:
+This command is used to create files related to backend listing and edit pages:
 
 - Controller files of these actions: index, new, edit, save, massSave, delete
 - Layout files of these actions: index, new, edit
@@ -102,3 +102,22 @@ Arguments list below:
 |`<controller-path>`|Controller path related to the Controller folder, use backslash as separator.<br>For example, input `Menu\Item` for the Vendor_Module module is going to create files under `\Vendor\Module\Controller\Menu\Item` namespace.|
 |`<model-path>`|Model path related to the Model folder, use backslash as separator|
 |`<module-name>`|Module name, format is like Vendor_Module, uppercase every piece, case sensitive.<br>This is optional, the last module name used with create-module command is as default.|
+
+### Create Data API
+
+```sh
+php bin/magento module-builder:create-api <module-name> <path> <fields>
+```
+
+This command is used to create files related to a data API which has many get/set methods:
+
+- An API interface file under `[module_root]/Api/Data`
+- A file of model which implements the API interface
+
+Arguments list below:
+
+|Argument|Description|
+|---|---|
+|`<module-name>`|Module name, format is like Vendor_Module, uppercase every piece, case sensitive.|
+|`<path>`|Path to the `[module_root]/Api/Data`|
+|`<fields>`|Field names, separated by comma|
